@@ -12,38 +12,37 @@
  *
  * Handles the Receiving of Webmentions.
  *
- * @static
  * @since 0.1.0
 */
 final class Webmention_Controller {
-	/** 
+	/**
 	 * Register the Routes.
 	 */
-	public static function register_routes() {
-		register_rest_route( 'webmention', '/endpoint', array( 
-			array( 
-					'methods' => 'POST', 
-					'callback' => array( 'Webmention_Controller', 'post'),
+	public function register_routes() {
+		register_rest_route( 'webmention', '/endpoint', array(
+			array(
+					'methods' => 'POST',
+					'callback' => array( 'Webmention_Controller', 'post' ),
 					'args' => array(
-						'source' => array( 
+						'source' => array(
 							'required' => 'true',
-							'sanitize_callback' => 'esc_url'
+							'sanitize_callback' => 'esc_url',
 						),
-						'target' => array( 
+						'target' => array(
 							'required' => 'true',
-							'sanitize_callback' => 'esc_url'
-						)
-					)
+							'sanitize_callback' => 'esc_url',
+						),
+					),
 				),
 			array(
 				'methods' => 'GET',
-				'callback' => array( 'Webmention_Controller', 'get')
-				)	
+				'callback' => array( 'Webmention_Controller', 'get' ),
+				),
 			)
 		);
 	}
 
-/**
+	/**
  * Hooks into the REST API output to output alternatives to JSON.
  *
  * This is only done for the webmention endpoint.
@@ -57,22 +56,22 @@ final class Webmention_Controller {
  * @param WP_REST_Server            $server  Server instance.
  * @return true
  */
-	public static function serve_request( $served, $result, $request, $server ) {
+	public function serve_request( $served, $result, $request, $server ) {
 		if ( '/webmention/endpoint' !== $request->get_route() ) {
 			return $served;
 		}
 		if ( 'GET' !== $request->get_method() && 'POST' !== $request->get_method() ) {
 			return $served;
 		}
-		if ('POST' == $request->get_method() ) {
+		if ( 'POST' === $request->get_method() ) {
 			if ( ! headers_sent() ) {
 			 	$server->send_header( 'Content-Type', 'text/plain; charset=' . get_option( 'blog_charset' ) );
-				$server->send_header(	'Access-Control-Allow-Origin', '*' );
+				$server->send_header( 'Access-Control-Allow-Origin', '*' );
 			}
 		}
-		if ('GET' == $request->get_method() ) {
+		if ( 'GET' === $request->get_method() ) {
 			if ( ! headers_sent() ) {
-			//	status_header( 400 );
+				//	status_header( 400 );
 				$server->send_header( 'Content-Type', 'text/html; charset=' . get_option( 'blog_charset' ) );
 			}
 			get_header();
@@ -89,17 +88,16 @@ final class Webmention_Controller {
 		$error = $result->as_error();
 		if ( $error ) {
 			$error_data = $error->get_error_data( );
-			if ( isset( $error_data[ 'status' ] ) ) {
+			if ( isset( $error_data['status'] ) ) {
 				status_header( $error_data['status'] );
 			}
 			echo $error->get_error_message();
-		}
-		else {
+		} else {
 			echo $result->get_data();
 		}
 		return true;
 	}
-					 
+
 
 	/**
 	 * Post Callback for the webmention endpoint.
@@ -109,7 +107,7 @@ final class Webmention_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	public static function post( $request ) {
+	public function post( $request ) {
 		$params = array_filter( $request->get_params() );
 		if ( ! isset( $params['source'] ) ) {
 			return new WP_Error( 'source' , 'Source is Missing', array( 'status' => 400 ) );
@@ -120,66 +118,48 @@ final class Webmention_Controller {
 		if ( ! stristr( $params['target'], preg_replace( '/^https?:\/\//i', '', home_url() ) ) ) {
 			return new WP_Error( 'target', 'Target is Not on this Domain', array( 'status' => 400 ) );
 		}
-	echo 'got here';
+		echo 'got here';
 
 	}
 
-/** 
- * Post Callback for the webmention endpoint. 
- * 
- * Returns the response. 
+	/**
+ * Post Callback for the webmention endpoint.
  *
- * @param WP_REST_Request $request Full data about the request. 
- * @return WP_Error|WP_REST_Response 
- */ 
-	public static function get( $request ) { 
+ * Returns the response.
+ *
+ * @param WP_REST_Request $request Full data about the request.
+ * @return WP_Error|WP_REST_Response
+ */
+	public function get( $request ) {
 		return '';
-	} 
+	}
 
 
 
 	/**
 	 * The Webmention autodicovery meta-tags
 	 */
-	public static function html_header() {
+	public function html_header() {
 		// Only add link if pings are open.
 		if ( pings_open() ) {
 			echo '<link rel="webmention" href="' . get_webmention_endpoint() . '" />' . "\n";
-		}	
+		}
 	}
 
 	/**
 	 * The Webmention autodicovery http-header
 	 */
-	public static function http_header() {
+	public function http_header() {
 		header( 'Link: <' . get_webmention_endpoint() . '>; rel="webmention"', false );
 	}
 
 	/**
-	 * Generates webfinger/host-meta links
-	 */
-	public static function jrd_links( $array ) {
-		$array['links'][] = array( 'rel' => 'webmention', 'href' => get_webmention_endpoint() );
-		return $array;
-	}
-
-	
-	/**
-	 * Return Webmention Endpoint
-	 *
-	 * @return string the Webmention endpoint
-	 */
-	public static function get_webmention_endpoint() {
-		return apply_filters( 'webmention_endpoint', get_rest_url( null, '/webmention/endpoint' ) ) ;
-	}
-
-/**
  * Generates a webmention form
  */
-	public static function webmention_form() {
+	public function webmention_form() {
 		?> 
 		<br />
-		<form id="webmention-form" action="<?php echo self::get_webmention_endpoint(); ?>" method="post">
+		<form id="webmention-form" action="<?php echo get_webmention_endpoint(); ?>" method="post">
 		<p>
 			<label for="webmention-source"><?php _e( 'Source URL:', 'webmention' ); ?></label>
 				<input id="webmention-source" size="15" type="url" name="source" placeholder="Where Did You Link to?" />
@@ -191,8 +171,8 @@ final class Webmention_Controller {
 			<input id="webmention-submit" type="submit" name="submit" value="Send" />
 		</p>
 		</form>
-		<p><?php _e('Webmention is a way for you to tell me "Hey, I have written a response to your post."', 'webmention'); ?> </p>
-		<p><?php _e('Learn more about webmentions at <a href="http://webmention.net">webmention.net</a>', 'webmention'); ?> </p>
+		<p><?php _e( 'Webmention is a way for you to tell me "Hey, I have written a response to your post."', 'webmention' ); ?> </p>
+		<p><?php _e( 'Learn more about webmentions at <a href="http://webmention.net">webmention.net</a>', 'webmention' ); ?> </p>
 		<?php
 	}
 
