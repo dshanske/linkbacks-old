@@ -18,7 +18,7 @@ final class Webmention_Controller {
 	/**
 	 * Register the Routes.
 	 */
-	public function register_routes() {
+	public static function register_routes() {
 		register_rest_route( 'webmention', '/endpoint', array(
 			array(
 					'methods' => 'POST',
@@ -56,7 +56,7 @@ final class Webmention_Controller {
  * @param WP_REST_Server            $server  Server instance.
  * @return true
  */
-	public function serve_request( $served, $result, $request, $server ) {
+	public static function serve_request( $served, $result, $request, $server ) {
 		if ( '/webmention/endpoint' !== $request->get_route() ) {
 			return $served;
 		}
@@ -107,7 +107,7 @@ final class Webmention_Controller {
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
-	public function post( $request ) {
+	public static function post( $request ) {
 		$params = array_filter( $request->get_params() );
 		if ( ! isset( $params['source'] ) ) {
 			return new WP_Error( 'source' , 'Source is Missing', array( 'status' => 400 ) );
@@ -118,8 +118,9 @@ final class Webmention_Controller {
 		if ( ! stristr( $params['target'], preg_replace( '/^https?:\/\//i', '', home_url() ) ) ) {
 			return new WP_Error( 'target', 'Target is Not on this Domain', array( 'status' => 400 ) );
 		}
-		echo 'got here';
-
+		if ( WP_DEBUG ) {
+			error_log( 'Webmention Received: ' . $params['source'] . ' => ' . $params['target'] );
+		}
 	}
 
 	/**
@@ -130,7 +131,7 @@ final class Webmention_Controller {
  * @param WP_REST_Request $request Full data about the request.
  * @return WP_Error|WP_REST_Response
  */
-	public function get( $request ) {
+	public static function get( $request ) {
 		return '';
 	}
 
@@ -139,7 +140,7 @@ final class Webmention_Controller {
 	/**
 	 * The Webmention autodicovery meta-tags
 	 */
-	public function html_header() {
+	public static function html_header() {
 		// Only add link if pings are open.
 		if ( pings_open() ) {
 			echo '<link rel="webmention" href="' . get_webmention_endpoint() . '" />' . "\n";
@@ -149,14 +150,14 @@ final class Webmention_Controller {
 	/**
 	 * The Webmention autodicovery http-header
 	 */
-	public function http_header() {
+	public static function http_header() {
 		header( 'Link: <' . get_webmention_endpoint() . '>; rel="webmention"', false );
 	}
 
 	/**
  * Generates a webmention form
  */
-	public function webmention_form() {
+	public static function webmention_form() {
 		?> 
 		<br />
 		<form id="webmention-form" action="<?php echo get_webmention_endpoint(); ?>" method="post">

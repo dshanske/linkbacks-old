@@ -62,3 +62,22 @@ if ( ! function_exists( 'wp_get_meta_tags' ) ) :
 	}
 endif;
 
+function wp_extract_urls_link( $content ) {
+	preg_match_all( "/<a[^>]+href=.(https?:\/\/[^'\"]+)/i", $content, $post_links );
+	$post_links = array_unique( array_map( 'html_entity_decode', $post_links[1] ) );
+	return array_values( $post_links );		
+}
+
+function wp_extract_urls_embed( $content ) {
+	// Find all URLs on their own line.
+	preg_match_all( '|^(\s*)(https?://[^\s<>"]+)(\s*)$|im', $content, $line_links );
+	$line_links = array_unique( array_map( 'html_entity_decode', $line_links[1] ) );
+
+	// Find all URLs in their own paragraph.
+	preg_match_all( '|^(\s*)(https?://[^\s<>"]+)(\s*)$|im', $content, $para_links );
+	$para_links = array_unique( array_map( 'html_entity_decode', $para_links[1] ) );
+
+	return array_merge( array_values( $line_links ), array_values( $para_links ) );
+}
+
+
