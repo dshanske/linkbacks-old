@@ -60,15 +60,10 @@ final class Webmention_Controller {
 		if ( '/webmention/endpoint' !== $request->get_route() ) {
 			return $served;
 		}
-		if ( 'GET' !== $request->get_method() && 'POST' !== $request->get_method() ) {
+		if ( 'GET' !== $request->get_method() ) {
 			return $served;
 		}
-		if ( 'POST' === $request->get_method() ) {
-			if ( ! headers_sent() ) {
-			 	$server->send_header( 'Content-Type', 'text/plain; charset=' . get_option( 'blog_charset' ) );
-				$server->send_header( 'Access-Control-Allow-Origin', '*' );
-			}
-		}
+
 		if ( 'GET' === $request->get_method() ) {
 			if ( ! headers_sent() ) {
 				//	status_header( 400 );
@@ -79,7 +74,7 @@ final class Webmention_Controller {
 			get_footer();
 		}
 		if ( is_wp_error( $result ) ) {
-			echo 'error';
+			return true;
 		}
 		if ( ! $result ) {
 			status_header( 501 );
@@ -121,6 +116,94 @@ final class Webmention_Controller {
 		if ( WP_DEBUG ) {
 			error_log( 'Webmention Received: ' . $params['source'] . ' => ' . $params['target'] );
 		}
+		$comment_post_ID = url_to_postid( $params['target'] );
+
+		// add some kind of a "default" id to add all
+		// webmentions to a specific post/page
+		$comment_post_ID = apply_filters( 'webmention_post_id', $comment_post_ID, $params['target'] );
+		
+		// check if post id exists
+		if ( ! $comment_post_ID ) {
+			return new WP_Error( 'targetnotvalid', 'Target is Not a Valid Post', array( 'status' => 400 ) );
+		}
+
+		// check if pings are allowed
+		if ( ! pings_open( $comment_post_ID ) ) {
+			return new WP_Error( 'PingsClosed', 'Pings are Disabled for this Post', array( 'status' => 400 ) );
+		}
+
+		$post = get_post( $comment_post_ID );
+
+		if ( ! $post ) {
+			return new WP_Error( 'targetnotvalid', 'Target is Not a Valid Post', array( 'status' => 400 ) );
+		}
+
+		$comment_author_url = esc_url_raw( $params['source'] );
+		$target = $params['target'];
+		$commentdata = compact( 'comment_post_ID', 'comment_author_url', 'target' );
+
+		// be sure to return an error message or response to the end of your request handler
+		return apply_filters( 'webmention_request', $commentdata);
+	}
+
+	public static function synchronous_handler( $data ) {
+		global $wp_version;
+		$user_agent = apply_filters( 'http_headers_useragent', 'WordPress/' . $wp_version . '; ' . get_bloginfo( 'url' ) );
+		$args = array( 
+				'timeout' => 100,
+				'limit_response_size' => 1048576,
+				'redirection' => 20,
+				'user-agent' => "$user_agent; verifying Webmention from " . $data['comment_author_IP'],
+		);
+		$response = wp_remote_get( $data['comment_author_url'], $args );
+		// check if source is accessible
+		if ( is_wp_error( $response ) ) {
+			return new WP_Error( 'sourceurl', 'Source URL not found', array( 'status' => 400 ) );
+		}
+		$remote_source_original = wp_remote_retrieve_body( $response );
+		// check if source really links to target
+		if ( ! strpos( htmlspecialchars_decode( $remote_source_original ), str_replace( array( 'http://www.', 'http://', 'https://www.',
+							'https://' ), '', untrailingslashit( preg_replace( '/#.*/', '', $data['target'] ) ) ) ) ) {
+			return new WP_Error( 'targeturl', 'Cannot find target link.', array( 'status' => 400 ) );
+		}
+	if ( ! function_exists( 'wp_kses_post' ) ) {
+		include_once( ABSPATH . 'wp-includes/kses.php' );
+	}
+	$remote_source = wp_kses_post( $remote_source_original );
+	$comment_author_IP = preg_replace( '/[^0-9a-fA-F:., ]/', '', $_SERVER['REMOTE_ADDR'] );
+	
+	// change this if your theme can't handle the Webmentions comment type
+	$comment_type = 'webmention';
+	
+	// add empty fields
+	$comment_parent = $comment_author_email = $comment_author = $comment_content = '';
+	$commentdata = compact( 'comment_author', 'comment_author_email',
+													'comment_content', 'comment_parent', 'remote_source',
+													'remote_source_original', 'comment_type' );
+	$commentdata = array_merge( $commentdata, $data );
+
+	$commentdata = apply_filters( 'webmention_comment_data', $commentdata );
+	
+	// disable flood control
+	remove_filter( 'check_comment_flood', 'check_comment_flood_db', 10, 3 );
+	
+	// update or save webmention
+	if ( empty( $commentdata['comment_ID'] ) ) {
+		// save comment
+		$comment_ID = wp_new_comment( $commentdata );
+	}
+	 else {
+		// save comment
+		wp_update_comment( $commentdata );
+		$comment_ID = $comment->comment_ID;
+																				}
+		// re-add flood control
+		add_filter( 'check_comment_flood', 'check_comment_flood_db', 10, 3 );
+		
+		do_action( 'webmention_post', $comment_ID );
+
+		// render a simple and customizable text output
+		return apply_filters( 'webmention_success_message', get_comment_link( $comment_ID ) );
 	}
 
 	/**
