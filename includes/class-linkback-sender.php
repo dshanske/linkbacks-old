@@ -88,7 +88,12 @@ final class Linkback_Sender {
 
 		// there is a webmention endpoint send a webmention
 		if ( isset( $r['webmention'] ) ) {
-			$args['body'] = 'source=' . urlencode( $source ) . '&target=' . urlencode( $target );
+			$body = array (  
+					'source' => $source,
+					'target' => $target
+			);
+			$body = apply_filters( 'webmention_send_vars', $body, $post_ID );
+			$args['body'] = build_query( $body );
 			$response = wp_remote_post( $r['webmention'], $args );
 		} else if ( isset( $r['pingback'] ) ) {
 			include_once( ABSPATH . WPINC . '/class-IXR.php' );
@@ -303,10 +308,6 @@ final class Linkback_Sender {
 
 		if ( wp_remote_retrieve_header( $response, 'x-pingback' ) ) {
 			$return['pingback'] = wp_remote_retrieve_header( $response, 'x-pingback' );
-		}
-
-		if ( ! empty( $return ) ) {
-			return $return;
 		}
 
 		// now do a GET since we're going to look in the html headers
