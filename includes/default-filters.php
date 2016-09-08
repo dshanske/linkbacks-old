@@ -9,6 +9,7 @@
 
 require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-webmention-controller.php' );
 require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-linkback-sender.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-linkback-handler.php' );
 
 // Configure the REST API route.
 add_action( 'rest_api_init', array( 'Webmention_Controller', 'register_routes' ) );
@@ -27,6 +28,11 @@ add_action( 'send_webmention', array( 'Linkback_Sender', 'send_webmention' ), 10
 // Webmention Handler
 add_action( 'webmention_request', array( 'Webmention_Controller', 'synchronous_handler' ) );
 
+// Add webmention to comment dropdown
+add_action( 'admin_comment_types_dropdown', array( 'Webmention_Controller', 'comment_types_dropdown' ) );
+
+//
+add_filter( 'get_comment_author_url', array( 'Linkback_Handler', 'get_comment_author_url' ), 99, 3);
 
 // endpoint discovery
 add_action( 'wp_head', array( 'Webmention_Controller', 'html_header' ), 99 );

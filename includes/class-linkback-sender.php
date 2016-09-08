@@ -88,9 +88,9 @@ final class Linkback_Sender {
 
 		// there is a webmention endpoint send a webmention
 		if ( isset( $r['webmention'] ) ) {
-			$body = array (  
+			$body = array(
 					'source' => $source,
-					'target' => $target
+					'target' => $target,
 			);
 			$body = apply_filters( 'webmention_send_vars', $body, $post_ID );
 			$args['body'] = build_query( $body );
