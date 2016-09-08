@@ -167,7 +167,7 @@ final class Webmention_Controller {
 		if ( is_wp_error( $response ) ) {
 			return new WP_Error( 'sourceurl', 'Source URL not found', array( 'status' => 400 ) );
 		}
-		$remote_source_original = wp_safe_remote_retrieve_body( $response );
+		$remote_source_original = wp_remote_retrieve_body( $response );
 		// check if source really links to target
 		if ( ! strpos( htmlspecialchars_decode( $remote_source_original ), str_replace( array(
 			'http://www.',
