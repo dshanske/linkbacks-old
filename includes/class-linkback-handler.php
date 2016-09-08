@@ -30,7 +30,7 @@ final class Linkback_Handler {
 		if ( $author_url = get_comment_meta( $id, '_linkback_author_url', true ) ) {
 			return $author_url;
 		}
-		return $link; 
+		return $url; 
 	}
 
 
