@@ -96,16 +96,20 @@ function linkbacks_pingback_ping( $args ) {
 		return $this->pingback_error( 16, $commentdata->get_error_message() ); 
 	}
 
-	$commentdata['comment_author'] = wp_unslash( Linkback_Handler::generate_linkback_title( $commentdata ) );
 	$commentdata['comment_author_email'] = '';
 	$commentdata['comment_author_url'] = wp_unslash( $source );
 	$commentdata['comment_meta'] = array( '_linkback_source' => $source, '_linkback_target' => $target );
-	$comment_content = $comment_content;
 
-	$commentdata = compact(
-		 'comment_author', 'comment_author_url', 'comment_author_email',
-		'comment_content'
-	);
+
+	$host = parse_url( $data['comment_author_url'], PHP_URL_HOST );
+	// strip leading www, if any
+	$host = preg_replace( '/^www\./', '', $host );
+	// Generate simple content to be enhanced.
+	$commentdata['comment_content'] = sprintf( __( 'Mentioned on <a href="%s">%s</a>', 'linkbacks'), esc_url( $source ), $host );
+	$commentdata['comment_author'] = Linkback_Handler::generate_linkback_title( $commentdata['remote_source'] );
+	if ( ! $commentdata['comment_author'] ) {
+		$commentdata['comment_author'] = $host;
+	}
 
 	$commentdata['comment_ID'] = wp_new_comment( $commentdata );
 
