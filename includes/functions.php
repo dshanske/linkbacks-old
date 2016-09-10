@@ -65,7 +65,7 @@ endif;
 function wp_extract_urls_link( $content ) {
 	preg_match_all( "/<a[^>]+href=.(https?:\/\/[^'\"]+)/i", $content, $post_links );
 	$post_links = array_unique( array_map( 'html_entity_decode', $post_links[1] ) );
-	return array_values( $post_links );		
+	return array_values( $post_links );
 }
 
 function wp_extract_urls_embed( $content ) {
@@ -80,4 +80,25 @@ function wp_extract_urls_embed( $content ) {
 	return array_merge( array_values( $line_links ), array_values( $para_links ) );
 }
 
-
+/**
+ * compare an url with a list of urls
+ *
+ * @param string $needle the target url
+ * @param array $haystack a list of urls
+ * @param boolean $schemelesse define if the target url should be checked with http:// and https://
+ *
+ * @return boolean
+ */
+function compare_urls( $needle, $haystack, $schemeless = true ) {
+	if ( true === $schemeless ) {
+		// remove url-scheme
+		$schemeless_target = preg_replace( '/^https?:\/\//i', '', $needle );
+		// add both urls to the needle
+		$needle = array( 'http://' . $schemeless_target, 'https://' . $schemeless_target );
+	} else {
+		// make $needle an array
+		$needle = array( $needle );
+	}
+	// compare both arrays
+	return array_intersect( $needle, $haystack );
+}
