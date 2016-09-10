@@ -94,7 +94,7 @@ final class Webmention_Controller {
 			return new WP_Error( 'target', 'Target is Missing', array( 'status' => 400 ) );
 		}
 		
-		$comment_author_url = $source = $params['source'];
+		$source = $params['source'];
 		$target = $params['target'];
 
 
@@ -106,9 +106,12 @@ final class Webmention_Controller {
 		}
 		$comment_post_ID = url_to_postid( $target );
 
-		// add some kind of a "default" id to add all
-		// webmentions to a specific post/page
-		$comment_post_ID = apply_filters( 'webmention_post_id', $comment_post_ID, $target );
+		// add some kind of a "default" id to add linkbacks to a specific post/page
+		$comment_post_ID = apply_filters( 'linkback_post_id', $comment_post_ID, $target );
+		
+		if ( url_to_postid( $source ) === $comment_post_ID ) {
+			return new WP_Error( 'sourceequalstarget', 'Target and Source cannot direct to the same resource', array( 'status' => 400 ) );
+		}
 
 		// check if post id exists
 		if ( ! $comment_post_ID ) {
@@ -135,7 +138,7 @@ final class Webmention_Controller {
 
 		$comment_type = 'webmention';
 
-		$commentdata = compact( 'comment_type', 'comment_agent', 'comment_date', 'comment_date_gmt', 'comment_post_ID', 'comment_author_IP', 'comment_author_url',
+		$commentdata = compact( 'comment_type', 'comment_agent', 'comment_date', 'comment_date_gmt', 'comment_post_ID', 'comment_author_IP',
 		'source', 'target' );
 
 		// be sure to return an error message or response to the end of your request handler
@@ -165,14 +168,19 @@ final class Webmention_Controller {
 		$data = Linkback_Handler::linkback_verify( $data );
 
 		if ( is_wp_error( $data ) ) {
+			// Allows for Error Logging or Handling
+			do_action( 'webmention_receive_error', $data );
 			return $data;
 		}
+
+		// Set Comment Author URL to Source
+		$data['comment_author_url'] = $data['source'];
 
 		// add empty fields
 		$data['comment_parent'] = $data['comment_author_email'] = '';
 
 		// add comment meta
-		$data['comment_meta'] = array( 'source' => $data['_linkback_source'], '_linkback_target' => $data['target'] ); 
+		$data['comment_meta'] = array( '_linkback_source' => $data['source'], '_linkback_target' => $data['target'] ); 
 
 		$host = parse_url( $data['comment_author_url'], PHP_URL_HOST );
 		// strip leading www, if any

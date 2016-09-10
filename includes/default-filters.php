@@ -7,9 +7,12 @@
  * @since 0.1.0
  */
 
+require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-linkback-handler.php' );
 require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-webmention-controller.php' );
 require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-linkback-sender.php' );
-require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-linkback-handler.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/includes/pingback-handler.php' );
+
+
 
 // Configure the REST API route.
 add_action( 'rest_api_init', array( 'Webmention_Controller', 'register_routes' ) );
@@ -29,14 +32,11 @@ add_action( 'send_webmention', array( 'Linkback_Sender', 'send_webmention' ), 10
 // add_action( 'publish_post', array( 'Webmention_Sender', 'publish_post_hook' ) );
 
 // Sync Webmention Handler
-// add_action( 'webmention_request', array( 'Webmention_Controller', 'synchronous_handler' ) );
+add_action( 'webmention_request', array( 'Webmention_Controller', 'synchronous_handler' ) );
 
 // Basic Async Webmention Handler
-add_action( 'webmention_request', array( 'Webmention_Controller', 'basic_asynchronous_handler' ) );
-add_action( 'async_process_webmention', array(
-	'Webmention_Controller',
-	'process_webmention',
-) );
+//add_action( 'webmention_request', array( 'Webmention_Controller', 'basic_asynchronous_handler' ) );
+//add_action( 'async_process_webmention', array( 'Webmention_Controller', 'process_webmention', ) );
 
 
 // Add webmention to comment dropdown

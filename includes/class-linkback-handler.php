@@ -87,19 +87,55 @@ final class Linkback_Handler {
  */
 	public static function linkback_verify( $data ) {
 		global $wp_version;
+		if ( ! is_array( $data ) || empty( $data ) ) {
+			return new WP_Error( 'invaliddata', 'Invalid Data Passed', array( 'status' => 500 ) );
+		}
 		$user_agent = apply_filters( 'http_headers_useragent', 'WordPress/' . $wp_version . '; ' . get_bloginfo( 'url' ) );
 		$args = array(
-						'timeout' => 100,
-						'limit_response_size' => 1048576,
+						'timeout' => 10,
+						'limit_response_size' => 153600,
 						'redirection' => 5,
-						'user-agent' => "$user_agent; verifying linkback from " . $data['comment_author_IP'],
+						'user-agent' => "$user_agent; verifying " . $data['comment_type'] .  "linkback from " . $data['comment_author_IP'],
 						);
-		$response = wp_safe_remote_get( $data['comment_author_url'], $args );
+		$response = wp_safe_remote_head( $data['source'], $args );
 		  // check if source is accessible
 		if ( is_wp_error( $response ) ) {
 			  return new WP_Error( 'sourceurl', 'Source URL not found', array( 'status' => 400 ) );
 		}
+
+		// A valid response code from the other server would not be considered an error.
+		$response_code = wp_remote_retrieve_response_code( $response );
+		// not an (x)html, sgml, or xml page, no use going further
+		if ( preg_match( '#(image|audio|video|model)/#is', wp_remote_retrieve_header( $response, 'content-type' ) ) ) {
+			return new WP_Error( 'content-type', 'Content Type is Media', array( 'status' => 400 ) );
+		}
+		
+		switch ( $response_code ) {
+			case 200:
+				$response = wp_safe_remote_get( $data['source'], $args );
+				break;
+			case 410:
+				return new WP_Error( 'deleted', 'Page has Been Deleted', array( 'data' => $data )  );
+			case 452:
+				return new WP_Error( 'removed', 'Page Removed for Legal Reasons', array( 'data' => $data ) );
+			default:
+				return new WP_Error( 'sourceurl', wp_remote_retrieve_response_message( $response ), array(
+							'status' => 400 ) );
+		}
+
 		$remote_source_original = wp_remote_retrieve_body( $response );
+		
+		/**
+		 * Filters the linkback remote source.
+		 *
+		 * @since 2.5.0
+		 *
+		 * @param string $remote_source_original Raw Response source for the page linked from.
+		 * @param string $target  URL of the page linked to.
+		 */
+		$remote_source_original = apply_filters( 'pre_remote_source', $remote_source_original, $data['target'] );
+
+
 		// check if source really links to target
 		if ( ! strpos( htmlspecialchars_decode( $remote_source_original ), str_replace( array(
 												'http://www.',
@@ -118,8 +154,7 @@ final class Linkback_Handler {
 
 		$commentdata = compact( 'remote_source', 'remote_source_original', 'content_type' );
 
-		$commentdata = array_merge( $commentdata, $data );
-		return $commentdata;
+		return array_merge( $commentdata, $data );
 	}
 
 
@@ -127,7 +162,7 @@ final class Linkback_Handler {
 	// This is more to lay out the data structure than anything else.
 	public static function register_meta() {
 		$args = array(
-				'sanitize_callback' => 'esc_url',
+				'sanitize_callback' => 'esc_url_raw',
 				'type' => 'string',
 				'description' => 'Source for Linkbacks',
 				'single' => true,
@@ -137,7 +172,7 @@ final class Linkback_Handler {
 		register_meta( 'comment', '_linkback_source', $args );
 
 		$args = array(
-				'sanitize_callback' => 'esc_url',
+				'sanitize_callback' => 'esc_url_raw',
 				'type' => 'string',
 				'description' => 'Target for Linkbacks',
 				'single' => true,
@@ -147,7 +182,7 @@ final class Linkback_Handler {
 		register_meta( 'comment', '_linkback_target', $args );
 
 		$args = array(
-				'sanitize_callback' => 'esc_url',
+				'sanitize_callback' => 'esc_url_raw',
 				'type' => 'string',
 				'description' => 'Author URL for the Linkback',
 				'single' => true,
