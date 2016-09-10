@@ -26,12 +26,12 @@ final class Webmention_Controller {
 					'args' => array(
 						'source' => array(
 							'required' => 'true',
-							'sanitize_callback' => 'esc_url',
+							'sanitize_callback' => 'esc_url_raw',
 							'validate_callback' => 'wp_http_validate_url',
 						),
 						'target' => array(
 							'required' => 'true',
-							'sanitize_callback' => 'esc_url',
+							'sanitize_callback' => 'esc_url_raw',
 							'validate_callback' => 'wp_http_validate_url',
 						),
 					),
@@ -112,17 +112,22 @@ final class Webmention_Controller {
 		if ( ! isset( $params['target'] ) ) {
 			return new WP_Error( 'target', 'Target is Missing', array( 'status' => 400 ) );
 		}
-		if ( ! stristr( $params['target'], preg_replace( '/^https?:\/\//i', '', home_url() ) ) ) {
+		
+		$comment_author_url = $source = $params['source'];
+		$target = $params['target'];
+
+
+		if ( ! stristr( $target, preg_replace( '/^https?:\/\//i', '', home_url() ) ) ) {
 			return new WP_Error( 'target', 'Target is Not on this Domain', array( 'status' => 400 ) );
 		}
 		if ( WP_DEBUG ) {
-			error_log( 'Webmention Received: ' . $params['source'] . ' => ' . $params['target'] );
+			error_log( 'Webmention Received: ' . $source . ' => ' . $params['target'] );
 		}
-		$comment_post_ID = url_to_postid( $params['target'] );
+		$comment_post_ID = url_to_postid( $target );
 
 		// add some kind of a "default" id to add all
 		// webmentions to a specific post/page
-		$comment_post_ID = apply_filters( 'webmention_post_id', $comment_post_ID, $params['target'] );
+		$comment_post_ID = apply_filters( 'webmention_post_id', $comment_post_ID, $target );
 
 		// check if post id exists
 		if ( ! $comment_post_ID ) {
@@ -140,9 +145,6 @@ final class Webmention_Controller {
 			return new WP_Error( 'targetnotvalid', 'Target is Not a Valid Post', array( 'status' => 400 ) );
 		}
 
-		// Store Copies of Source and Target in Comment Meta
-		$comment_meta = array();
-
 		// In the event of async processing this needs to be stored here as it might not be available
 		// later.
 		$comment_author_IP = preg_replace( '/[^0-9a-fA-F:., ]/', '',$_SERVER['REMOTE_ADDR'] );
@@ -152,11 +154,8 @@ final class Webmention_Controller {
 
 		$comment_type = 'webmention';
 
-		$comment_author_url = $comment_meta['_linkback_source'] = esc_url_raw( $params['source'] );
-		$target = $comment_meta['_linkback_target'] = esc_url_raw( $params['target'] );
-
 		$commentdata = compact( 'comment_type', 'comment_agent', 'comment_date', 'comment_date_gmt', 'comment_post_ID', 'comment_author_IP', 'comment_author_url',
-		'comment_meta', 'target' );
+		'source', 'target' );
 
 		// be sure to return an error message or response to the end of your request handler
 		return apply_filters( 'webmention_request', $commentdata );
@@ -164,7 +163,7 @@ final class Webmention_Controller {
 
 	public static function basic_asynchronous_handler( $data ) {
 		// Schedule the Processing to Be Completed sometime in the next 3 minutes
-		wp_schedule_single_event( time() + wp_rand( 0, 180 ), 'async_process_webmention', array( $data ) );
+		wp_schedule_single_event( time() + wp_rand( 0, 120 ), 'async_process_webmention', array( $data ) );
 		return new WP_REST_Response( $data, 202 );
 	}
 
@@ -190,6 +189,9 @@ final class Webmention_Controller {
 
 		// add empty fields
 		$data['comment_parent'] = $data['comment_author_email'] = '';
+
+		// add comment meta
+		$data['comment_meta'] = array( 'source' => $data['_linkback_source'], '_linkback_target' => $data['target'] ); 
 
 		$host = parse_url( $data['comment_author_url'], PHP_URL_HOST );
 		// strip leading www, if any
