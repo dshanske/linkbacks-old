@@ -66,16 +66,14 @@ function linkbacks_pingback_ping( $args ) {
 
 	if ( url_to_postid( $source ) === $post_ID ) {
 		return $this->pingback_error( 0, __( 'The source URL and the target URL cannot both point to the same resource.' ) ); }
+	
+	$data = Linkback_Handler::check_dupes( $data );
 
 	// Let's check that the remote site didn't already pingback this entry
 	$dupes = get_comments( array(
 							'comment_post_ID' => $comment_post_ID,
 							'author_url' => $source
 				) );
-
-	if ( ! empty( $dupes ) ) {
-		return $this->pingback_error( 48, __( 'The pingback has already been registered.' ) );
-	}
 
 	// very stupid, but gives time to the 'from' server to publish !
 	sleep( 1 );
@@ -84,6 +82,13 @@ function linkbacks_pingback_ping( $args ) {
 	$comment_type = 'pingback';
 
 	$commentdata = compact( 'source', 'target', 'comment_post_ID', 'comment_author_IP', 'comment_type' );
+	
+	$commentdata = Linkback_Handler::check_dupes( $commentdata );
+
+	if ( isset( $commentdata['comment_ID'] ) ) {
+		return $this->pingback_error( 48, __( 'The pingback has already been registered.' ) );
+	}
+
 
 	$commentdata = Linkback_Handler::linkback_verify( $commentdata );
 
