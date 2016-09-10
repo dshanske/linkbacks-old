@@ -65,33 +65,14 @@ final class Webmention_Controller {
 		if ( 'GET' !== $request->get_method() ) {
 			return $served;
 		}
-
-		if ( 'GET' === $request->get_method() ) {
-			if ( ! headers_sent() ) {
-				//	status_header( 400 );
-				$server->send_header( 'Content-Type', 'text/html; charset=' . get_option( 'blog_charset' ) );
-			}
-			get_header();
-			self::webmention_form();
-			get_footer();
+		// If someone tries to poll the webmention endpoint return a webmention form.
+		if ( ! headers_sent() ) {
+			//	status_header( 400 );
+			$server->send_header( 'Content-Type', 'text/html; charset=' . get_option( 'blog_charset' ) );
 		}
-		if ( is_wp_error( $result ) ) {
-			return true;
-		}
-		if ( ! $result ) {
-			status_header( 501 );
-			return get_status_header_desc( 501 );
-		}
-		$error = $result->as_error();
-		if ( $error ) {
-			$error_data = $error->get_error_data( );
-			if ( isset( $error_data['status'] ) ) {
-				status_header( $error_data['status'] );
-			}
-			echo $error->get_error_message();
-		} else {
-			echo $result->get_data();
-		}
+		get_header();
+		self::webmention_form();
+		get_footer();
 		return true;
 	}
 
@@ -279,7 +260,7 @@ final class Webmention_Controller {
 				<input id="webmention-source" size="15" type="url" name="source" placeholder="Where Did You Link to?" />
 		</p>
 		<p>
-			<label for="webmention-target"><?php _e( 'Target URL:', 'webmention' ); ?></label>
+			<label for="webmention-target"><?php _e( 'Target URL(must be on this site):', 'webmention' ); ?></label>
 			<input id="webmention-target" size="15" type="url" name="target" placeholder="What Did You Link to?" />
 			<br /><br/>
 			<input id="webmention-submit" type="submit" name="submit" value="Send" />
