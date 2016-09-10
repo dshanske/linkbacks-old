@@ -29,11 +29,9 @@ function linkbacks_pingback_ping( $args ) {
 	/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
 	do_action( 'xmlrpc_call', 'pingback.ping' );
 
-	$this->escape( $args );
-
-	$source = str_replace( '&amp;', '&', $args[0] );
+	$source = esc_url_raw( str_replace( '&amp;', '&', $args[0] ) );
 	$target = str_replace( '&amp;', '&', $args[1] );
-	$target = str_replace( '&', '&amp;', $source );
+	$target = esc_url_raw( str_replace( '&', '&amp;', $target ) );
 
 	/**
 		 * Filters the pingback source URI.
@@ -90,6 +88,8 @@ function linkbacks_pingback_ping( $args ) {
 	$commentdata = Linkback_Handler::linkback_verify( $commentdata );
 
 	if ( is_wp_error( $commentdata ) ) {
+		// Allows for Error Logging or Handling
+		do_action( 'pingback_receive_error', $commentdata );
 		if ( 'targeturl' === $commentdata->get_error_code() ) {
 			return $this->pingback_error( 17, $commentdata->get_error_message() ); 
 		}
@@ -101,7 +101,7 @@ function linkbacks_pingback_ping( $args ) {
 	$commentdata['comment_meta'] = array( '_linkback_source' => $source, '_linkback_target' => $target );
 
 
-	$host = parse_url( $data['comment_author_url'], PHP_URL_HOST );
+	$host = parse_url( $source, PHP_URL_HOST );
 	// strip leading www, if any
 	$host = preg_replace( '/^www\./', '', $host );
 	// Generate simple content to be enhanced.
@@ -123,7 +123,10 @@ function linkbacks_pingback_ping( $args ) {
 		 * @param array $commentdata Comement Data
 		 */
 	do_action( 'pingback_post', $commentdata['comment_ID'], $commentdata );
-
+	if ( WP_DEBUG ) {
+		error_log( sprintf(__( 'Pingback from %1$s to %2$s registered. Keep the web talking! :-)' ),
+				$source, $target) );
+	}
 	return sprintf(__( 'Pingback from %1$s to %2$s registered. Keep the web talking! :-)' ), $source,
 	$target);
 }
