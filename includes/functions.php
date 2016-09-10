@@ -17,15 +17,15 @@ function get_webmention_endpoint() {
 }
 
 /**
-	 * A wrapper for Webmention_Sender::send_webmention
+	 * A wrapper for Linkback_Sender::send_linkback
 	  *
 		 * @param string $source source url
 		  * @param string $target target url
 			 *
 			  * @return array of results including HTTP headers
 				 */
-function send_webmention( $source, $target ) {
-		return Webmention_Sender::send_webmention( $source, $target );
+function send_linkback( $source, $target ) {
+		return Linkback_Sender::send_linkback( $source, $target );
 }
 
 if ( ! function_exists( 'wp_get_meta_tags' ) ) :

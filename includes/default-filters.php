@@ -23,9 +23,9 @@ add_filter( 'rest_pre_serve_request', array( 'Webmention_Controller', 'serve_req
 // Add Support for Registering Meta
 add_action( 'plugins_loaded', array( 'Linkback_Handler', 'register_meta' ) );
 
-// a pseudo hook so you can run a do_action('send_webmention')
-// instead of calling Webmention_Sender::send_webmention
-add_action( 'send_webmention', array( 'Linkback_Sender', 'send_webmention' ), 10, 2 );
+// a pseudo hook so you can run a do_action('send_linkback')
+// instead of calling Linkback_Sender::send_linkback
+add_action( 'send_linkback', array( 'Linkback_Sender', 'send_linkback' ), 10, 2 );
 
 // run webmentions before the other pinging stuff
 // add_action( 'do_pings', array( 'Webmention_Sender', 'do_webmentions' ), 5, 1 );
