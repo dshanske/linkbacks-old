@@ -28,6 +28,13 @@ function send_linkback( $source, $target ) {
 		return Linkback_Sender::send_linkback( $source, $target );
 }
 
+// Backward compatibility
+if ( ! function_exists( 'send_webmention' ) ) {
+	function send_webmention( $source, $target ) {
+		return send_linkback( $source, $target );
+	}
+}
+
 if ( ! function_exists( 'wp_get_meta_tags' ) ) :
 	/**
 	 * Parse meta tags from source content

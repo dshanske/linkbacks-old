@@ -27,23 +27,25 @@ add_action( 'plugins_loaded', array( 'Linkback_Handler', 'register_meta' ) );
 // instead of calling Linkback_Sender::send_linkback
 add_action( 'send_linkback', array( 'Linkback_Sender', 'send_linkback' ), 10, 2 );
 
-// run webmentions before the other pinging stuff
-// add_action( 'do_pings', array( 'Webmention_Sender', 'do_webmentions' ), 5, 1 );
-// add_action( 'publish_post', array( 'Webmention_Sender', 'publish_post_hook' ) );
-
-// Sync Webmention Handler
-add_action( 'webmention_request', array( 'Webmention_Controller', 'synchronous_handler' ) );
-
-// Basic Async Webmention Handler
-//add_action( 'webmention_request', array( 'Webmention_Controller', 'basic_asynchronous_handler' ) );
-//add_action( 'async_process_webmention', array( 'Webmention_Controller', 'process_webmention', ) );
-
+// If this variable is defined use the Async Handler
+if ( ! defined( 'WEBMENTION_HANDLER' ) ) {
+	// Sync Webmention Handler
+	add_action( 'webmention_request', array( 'Webmention_Controller', 'synchronous_handler' ) );
+}
+else { 
+	// Basic Async Webmention Handler
+	add_action( 'webmention_request', array( 'Webmention_Controller', 'basic_asynchronous_handler' ) );
+	add_action( 'async_process_webmention', array( 'Webmention_Controller', 'process_webmention', ) );
+}
 
 // Add webmention to comment dropdown
 add_action( 'admin_comment_types_dropdown', array( 'Webmention_Controller', 'comment_types_dropdown' ) );
 
-//
+// Allows Comment Author for Linkbacks and Pingbacks to be Overridden on Display
 add_filter( 'get_comment_author_url', array( 'Linkback_Handler', 'get_comment_author_url' ), 99, 3 );
+
+// Add Last Modified Flag for Webmentions on Edit Comment
+add_action( 'edit_comment', array( 'Linkback_Handler', 'last_modified'), 9, 2 );
 
 // endpoint discovery
 add_action( 'wp_head', array( 'Webmention_Controller', 'html_header' ), 99 );

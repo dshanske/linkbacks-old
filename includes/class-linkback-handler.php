@@ -33,6 +33,16 @@ final class Linkback_Handler {
 		return $url;
 	}
 
+	/**
+	 * Add Last Modified Meta to Webmentions Set With Timezone Offset
+	 */
+	public static function last_modified( $comment_id, $commentdata ) {
+		if ( 'webmention' == get_comment_type( $comment_id ) ) {
+			$date = new DateTime( null, new DateTimeZone( get_option('timezone_string') ) );
+			update_comment_meta( $comment_id, '_linkback_modified', $date->format( DATE_W3C ) );
+		}
+	}
+
 	public static function generate_linkback_title( $remote_source ) {
 		$meta_tags = wp_get_meta_tags( $remote_source );
 		// use OGP title if available
@@ -212,6 +222,17 @@ final class Linkback_Handler {
 		// This allows information to retrieve an avatar to be stored.
 		// FIXME: Could be attachment ID, URL, data-url
 		register_meta( 'comment', '_linkback_avatar', $args );
+
+		$args = array(
+				'type' => 'string',
+				'description' => 'Last Modified timestamp with offset for Webmentions',
+				'single' => true,
+				'show_in_rest' => true,
+				);
+		// This is stored rather than in WordPress standard - two variables having a local and a gmt
+		// offset in ISO8601 format with timezone offset included. Parsing can override this with a
+		// timestamp supplied by the remote site as needed.
+		register_meta( 'comment', '_linkback_modified', $args );
 	}
 
 
