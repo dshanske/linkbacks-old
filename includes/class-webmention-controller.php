@@ -188,17 +188,10 @@ final class Webmention_Controller {
 		// add comment meta
 		$data['comment_meta'] = array( '_linkback_source' => $data['source'], '_linkback_target' => $data['target'] ); 
 
-		$host = parse_url( $data['comment_author_url'], PHP_URL_HOST );
-		// strip leading www, if any
-		$host = preg_replace( '/^www\./', '', $host );
-		// Generate simple content to be enhanced.
-		$data['comment_content'] = sprintf( __( 'Mentioned on <a href="%s">%s</a>', 'linkbacks' ), esc_url( $data['comment_author_url'] ), $host );
+		// Generate Extra Linkback Data from Meta Tags
+		$data = Linkback_Handler::generate_linkback_data( $data );
 
-		$data['comment_author'] = Linkback_Handler::generate_linkback_title( $data['remote_source'] );
-		if ( ! $data['comment_author'] ) {
-			$data['comment_author'] = $host;
-		}
-
+		// Check for Duplicates
 		$data = Linkback_Handler::check_dupes( $data );
 
 		// disable flood control

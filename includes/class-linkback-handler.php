@@ -43,17 +43,41 @@ final class Linkback_Handler {
 		}
 	}
 
-	public static function generate_linkback_title( $remote_source ) {
-		$meta_tags = wp_get_meta_tags( $remote_source );
+	public static function generate_linkback_data( $data ) {
+		$meta_tags = wp_get_meta_tags( $data['remote_source_original'] );
+		$host = wp_parse_url( $data['comment_author_url'] );
+		// strip leading www, if any
+		$host = preg_replace( '/^www\./', '', $host['host'] );
+		
 		// use OGP title if available
-		if ( array_key_exists( 'og:title', $meta_tags ) ) {
+		if ( array_key_exists( 'author', $meta_tags ) ) {
+			$data['comment_author'] = $meta['author'];
+		} elseif ( array_key_exists( 'og:title', $meta_tags ) ) {
 			// Use Open Graph Title if set
-			return $meta_tags['og:title'];
-		} elseif ( preg_match( '/<title>(.+)<\/title>/i', $remote_source, $match ) ) { // use title
-			return trim( $match[1] );
+			$data['comment_author'] =  $meta_tags['og:title'];
+		} elseif ( preg_match( '/<title>(.+)<\/title>/i', $data['remote_source_original'], $match ) ) { // use title
+			$data['comment_author'] = trim( $match[1] );
 		} else {
-			return false;
+			$data['comment_author'] = $host;
 		}
+
+		if ( array_key_exists( 'article:published_time', $meta_tags ) ) {
+			$date = new DateTime( $meta_tags['article:published_time'] );
+			$date->setTimezone( new DateTimeZone( 'UTC' ) );
+			$data['comment_date_gmt'] = $date->format( 'Y-m-d H:i:s' );
+			$date->setTimezone( new DateTimeZone( get_option('timezone_string') ) );
+			$data['comment_date'] = $date->format( 'Y-m-d H:i:s' );
+		}
+		
+		// Generate simple content.
+		if ( array_key_exists( 'og:description', $meta_tags ) ) {
+			$data['comment_content'] = $meta_tags['og:description'];
+		}
+		else {
+			$data['comment_content'] = sprintf( __( 'Mentioned on <a href="%s">%s</a>', 'linkbacks'), esc_url( $data['comment_author_url'] ), $host );
+		}
+
+		return $data;
 	}
 
 	/**

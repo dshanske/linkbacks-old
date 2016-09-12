@@ -16,10 +16,9 @@ require_once( dirname( dirname( __FILE__ ) ) . '/includes/pingback-handler.php' 
 // So this enhancement will not be loaded if there is a pre 5.3 version rather than 
 // backporting the libraries.
 if ( version_compare( PHP_VERSION, '5.3', '>' ) ) {
-	require_once dirname( dirname( __FILE__ ) ) . '/includes/indieweb-comments.php';
+	//require_once dirname( dirname( __FILE__ ) ) . '/includes/indieweb-comments.php';
+	// add_filter( 'preprocess_comment', 'indieweb_preprocess_linkback', 0);
 }
-
-add_filter( 'preprocess_comment', 'indieweb_preprocess_linkback', 0);
 
 // Configure the REST API route.
 add_action( 'rest_api_init', array( 'Webmention_Controller', 'register_routes' ) );
