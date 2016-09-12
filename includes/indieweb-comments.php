@@ -31,9 +31,6 @@ function indieweb_preprocess_linkback( $commentdata ) {
 			if ( ! array_key_exists( 'comment_meta', $commentdata ) ) {
 				$commentdata['comment_meta'] = array();
 			}
-			if ( ! empty( $mf2comment['name'] ) ) {
-				$commentdata['comment_author'] = $mf2comment['name'];
-			}
 			if ( ! empty( $mf2comment['text'] ) ) {
 				$commentdata['comment_content'] = $mf2comment['text'];
 			}
@@ -46,7 +43,7 @@ function indieweb_preprocess_linkback( $commentdata ) {
 			}
 			if ( ! empty( $mf2comment['author'] ) ) {
 				if ( ! empty( $mf2comment['author']['name'] ) ) {
-					$commentdata['comment_meta']['_linkback_author_name'] = $mf2comment['author']['name'];
+					$commentdata['comment_author'] = $mf2comment['author']['name'];
 				}
 				if ( ! empty( $mf2comment['author']['photo'] ) ) {
 					$commentdata['comment_meta']['_linkback_avatar'] = $mf2comment['author']['photo'];

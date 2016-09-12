@@ -32,6 +32,45 @@ final class Linkback_Handler {
 		}
 		return $url;
 	}
+	
+	/**
+	 * Show avatars also on webmentions and pingbacks
+	 *
+	 * @param array $types list of avatar enabled comment types
+	 *
+	 * @return array show avatars also on webmentions and pingbacks
+	 */
+	public static function get_avatar_comment_types( $types ) {
+		$types[] = 'pingback';
+		$types[] = 'webmention';
+		return $types;
+	}
+
+
+	/**
+	 * Replaces the default avatar with the WebMention uf2 photo
+	 *
+	 * @param array $args Arguments passed to get_avatar_data(), after processing.
+	 * @param int|string|object $id_or_email A user ID, email address, or comment object
+	 * @return array $args
+	*/
+	public static function pre_get_avatar_data($args, $id_or_email) {
+		if ( ! isset( $args['class'] ) ) {
+			$args['class'] = array( 'u-photo' );
+		} else {
+			$args['class'][] = 'u-photo';
+		}
+		if ( ! is_object( $id_or_email ) || ! isset( $id_or_email->comment_type ) || ! get_comment_meta( $id_or_email->comment_ID, '_linkback_avatar', true ) ) {
+			return $args;
+		}
+		// check if comment has an avatar
+		$avatar = get_comment_meta( $id_or_email->comment_ID, '_linkback_avatar', true );
+		if ( $avatar ) {
+			$args['url'] = $avatar;
+		}
+		return $args;
+	}
+
 
 	/**
 	 * Add Last Modified Meta to Webmentions Set With Timezone Offset

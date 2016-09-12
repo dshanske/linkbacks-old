@@ -16,8 +16,8 @@ require_once( dirname( dirname( __FILE__ ) ) . '/includes/pingback-handler.php' 
 // So this enhancement will not be loaded if there is a pre 5.3 version rather than 
 // backporting the libraries.
 if ( version_compare( PHP_VERSION, '5.3', '>' ) ) {
-	//require_once dirname( dirname( __FILE__ ) ) . '/includes/indieweb-comments.php';
-	// add_filter( 'preprocess_comment', 'indieweb_preprocess_linkback', 0);
+	require_once dirname( dirname( __FILE__ ) ) . '/includes/indieweb-comments.php';
+	add_filter( 'preprocess_comment', 'indieweb_preprocess_linkback', 0);
 }
 
 // Configure the REST API route.
@@ -46,6 +46,12 @@ else {
 
 // Add webmention to comment dropdown
 add_action( 'admin_comment_types_dropdown', array( 'Webmention_Controller', 'comment_types_dropdown' ) );
+
+// Add to Comment Types That Accept an Avatar
+add_filter( 'get_avatar_comment_types', array( 'Linkback_Handler', 'get_avatar_comment_types' ) );
+
+// Add Optiojns to Avatar Data
+add_filter( 'pre_get_avatar_data', array( 'Linkback_Handler', 'pre_get_avatar_data' ), 11, 3 );
 
 // Allows Comment Author for Linkbacks and Pingbacks to be Overridden on Display
 add_filter( 'get_comment_author_url', array( 'Linkback_Handler', 'get_comment_author_url' ), 99, 3 );
