@@ -145,6 +145,8 @@ final class Linkback_Sender {
 
 		// filter links
 		$post_links = apply_filters( 'linkback_links', $links, $post_ID );
+		// Legacy from Other Plugin for Now
+		$post_links = apply_filters( 'webmention_links', $post_links, $post_ID );
 		$post_links = array_unique( $post_links );
 
 		/**
@@ -214,7 +216,6 @@ final class Linkback_Sender {
 	 */
 	public static function do_all_pings() {
 		global $wpdb;
-		error_log( 'Do All Pings' );
 		$post_types = get_post_types( array( 'publicly_queryable' => true ) );
 		$mentions = get_posts( array(
 			'meta_key' => '_pingme',
@@ -223,7 +224,6 @@ final class Linkback_Sender {
 			'fields' => 'ids',
 			'posts_per_page' => -1,
 		) );
-		error_log( 'Pingme: ' . serialize( $mentions ) );
 		if ( empty( $mentions ) ) {
 			return;
 		}

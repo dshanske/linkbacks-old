@@ -233,6 +233,24 @@ final class Linkback_Handler {
 		// offset in ISO8601 format with timezone offset included. Parsing can override this with a
 		// timestamp supplied by the remote site as needed.
 		register_meta( 'comment', '_linkback_modified', $args );
+    
+		$args = array(
+				'type' => 'string',
+				'description' => 'Type of Linkback',
+				'single' => true,
+				'show_in_rest' => true,
+				);
+    // Type of Linkback - mention, reply, RSVP, like, etc
+		register_meta( 'comment', '_linkback_type', $args );
+
+		$args = array(
+				'type' => 'string',
+				'description' => 'Canonical URL for Linkback',
+				'single' => true,
+				'show_in_rest' => true,
+				);
+    // In the event the parsing declares a different canonical URL
+		register_meta( 'comment', '_linkback_url', $args );
 	}
 
 

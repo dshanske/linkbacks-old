@@ -156,8 +156,14 @@ final class Webmention_Controller {
 		if ( is_wp_error( $data ) ) {
 			return $data;
 		}
-		// Return the comment ID and successful
-		return new WP_REST_Response( $data['comment_ID'], 200 );
+		// Return select data
+		$return = array(
+				'title' => $data['comment_author'],
+				'comment_ID' => $data['comment_ID'],
+				'source' => $data['source'],
+				'target' => $data['target'],
+				);
+		return new WP_REST_Response( $return, 200 );
 	}
 
 	public static function process_webmention( $data ) {
@@ -202,6 +208,7 @@ final class Webmention_Controller {
 		if ( empty( $data['comment_ID'] ) ) {
 			// save comment
 			$data['comment_ID'] = wp_new_comment( $data );
+			do_action( 'webmention_post', $data['comment_ID'], $data );
 		} else {
 			// save comment
 			wp_update_comment( $data );
@@ -209,7 +216,7 @@ final class Webmention_Controller {
 		// re-add flood control
 		add_filter( 'check_comment_flood', 'check_comment_flood_db', 10, 3 );
 
-		// Return the comment ID and successful
+		// Return the comment data
 		return $data;
 	}
 
