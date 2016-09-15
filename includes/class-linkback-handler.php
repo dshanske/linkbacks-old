@@ -27,11 +27,37 @@ final class Linkback_Handler {
 	 * @return string the replaced/parsed author url or the original comment link
 	 */
 	public static function get_comment_author_url($url, $id, $comment) {
-		if ( $author_url = get_comment_meta( $id, '_linkback_author_url', true ) ) {
-			return $author_url;
+		$author_url = get_comment_meta( $comment->comment_ID, '_linkback_author_url', true );
+		if ( ! $author_url ) {
+			// If nothing is found fallback on Semantic Linkbacks Data.
+			$author_url = get_comment_meta( $comment->comment_ID, 'semantic_linkbacks_author_url', true );
 		}
-		return $url;
+		return $author_url ? $author_url : $url;
 	}
+
+  /**
+	 * Replaces the comment link with one to the canonical URL
+	 * 
+	 * Establishes a defined meta key for this
+	 *
+	 *
+	 * @param string $link the link url
+	 * @param obj $comment the comment object
+	 * @param array $args a list of arguments to generate the final link tag
+	 * @return string the linkback source or the original comment link
+	 */
+	public static function get_comment_link( $link, $comment, $args ) {
+		$url = get_comment_meta( $comment->comment_ID, '_linkbacks_url', true );
+		if ( ! $url ) {
+			// If no URL look for it where Semantic Linkbacks stores it.
+			$url = get_comment_meta( $comment->comment_ID, 'semantic_linkbacks_canonical', true );
+		}
+		if ( is_singular() && $url ) {
+			return $url;
+		}
+		return $link;
+	}
+
 
 	/**
 	 * Show avatars also on webmentions and pingbacks
