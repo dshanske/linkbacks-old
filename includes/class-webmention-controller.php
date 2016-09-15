@@ -13,7 +13,7 @@
  * Handles the Receiving of Webmentions.
  *
  * @since 0.1.0
-*/
+ */
 final class Webmention_Controller {
 	/**
 	 * Register the Routes.
@@ -45,19 +45,19 @@ final class Webmention_Controller {
 	}
 
 	/**
- * Hooks into the REST API output to output alternatives to JSON.
- *
- * This is only done for the webmention endpoint.
- *
- * @access private
- * @since 0.1.0
- *
- * @param bool                      $served  Whether the request has already been served.
- * @param WP_HTTP_ResponseInterface $result  Result to send to the client. Usually a WP_REST_Response.
- * @param WP_REST_Request           $request Request used to generate the response.
- * @param WP_REST_Server            $server  Server instance.
- * @return true
- */
+	 * Hooks into the REST API output to output alternatives to JSON.
+	 *
+	 * This is only done for the webmention endpoint.
+	 *
+	 * @access private
+	 * @since 0.1.0
+	 *
+	 * @param bool                      $served  Whether the request has already been served.
+	 * @param WP_HTTP_ResponseInterface $result  Result to send to the client. Usually a WP_REST_Response.
+	 * @param WP_REST_Request           $request Request used to generate the response.
+	 * @param WP_REST_Server            $server  Server instance.
+	 * @return true
+	 */
 	public static function serve_request( $served, $result, $request, $server ) {
 		if ( '/webmention/endpoint' !== $request->get_route() ) {
 			return $served;
@@ -67,7 +67,7 @@ final class Webmention_Controller {
 		}
 		// If someone tries to poll the webmention endpoint return a webmention form.
 		if ( ! headers_sent() ) {
-			//	status_header( 400 );
+			// status_header( 400 );
 			$server->send_header( 'Content-Type', 'text/html; charset=' . get_option( 'blog_charset' ) );
 		}
 		get_header();
@@ -93,10 +93,9 @@ final class Webmention_Controller {
 		if ( ! isset( $params['target'] ) ) {
 			return new WP_Error( 'target', 'Target is Missing', array( 'status' => 400 ) );
 		}
-		
+
 		$source = $params['source'];
 		$target = $params['target'];
-
 
 		if ( ! stristr( $target, preg_replace( '/^https?:\/\//i', '', home_url() ) ) ) {
 			return new WP_Error( 'target', 'Target is Not on this Domain', array( 'status' => 400 ) );
@@ -108,7 +107,7 @@ final class Webmention_Controller {
 
 		// add some kind of a "default" id to add linkbacks to a specific post/page
 		$comment_post_ID = apply_filters( 'linkback_post_id', $comment_post_ID, $target );
-		
+
 		if ( url_to_postid( $source ) === $comment_post_ID ) {
 			return new WP_Error( 'sourceequalstarget', 'Target and Source cannot direct to the same resource', array( 'status' => 400 ) );
 		}
@@ -186,7 +185,7 @@ final class Webmention_Controller {
 		$data['comment_parent'] = $data['comment_author_email'] = '';
 
 		// add comment meta
-		$data['comment_meta'] = array( '_linkback_source' => $data['source'], '_linkback_target' => $data['target'] ); 
+		$data['comment_meta'] = array( '_linkback_source' => $data['source'], '_linkback_target' => $data['target'] );
 
 		// Generate Extra Linkback Data from Meta Tags
 		$data = Linkback_Handler::generate_linkback_data( $data );
@@ -214,13 +213,13 @@ final class Webmention_Controller {
 	}
 
 	/**
- * Post Callback for the webmention endpoint.
- *
- * Returns the response.
- *
- * @param WP_REST_Request $request Full data about the request.
- * @return WP_Error|WP_REST_Response
- */
+	 * Post Callback for the webmention endpoint.
+	 *
+	 * Returns the response.
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
+	 */
 	public static function get( $request ) {
 		return '';
 	}
@@ -257,25 +256,25 @@ final class Webmention_Controller {
 	}
 
 	/**
- * Generates a webmention form
- */
+	 * Generates a webmention form
+	 */
 	public static function webmention_form() {
 		?> 
 		<br />
 		<form id="webmention-form" action="<?php echo get_webmention_endpoint(); ?>" method="post">
 		<p>
-			<label for="webmention-source"><?php _e( 'Source URL:', 'webmention' ); ?></label>
+			<label for="webmention-source"><?php esc_html_e( 'Source URL:', 'webmention' ); ?></label>
 				<input id="webmention-source" size="15" type="url" name="source" placeholder="Where Did You Link to?" />
 		</p>
 		<p>
-			<label for="webmention-target"><?php _e( 'Target URL(must be on this site):', 'webmention' ); ?></label>
+			<label for="webmention-target"><?php esc_html_e( 'Target URL(must be on this site):', 'webmention' ); ?></label>
 			<input id="webmention-target" size="15" type="url" name="target" placeholder="What Did You Link to?" />
 			<br /><br/>
 			<input id="webmention-submit" type="submit" name="submit" value="Send" />
 		</p>
 		</form>
-		<p><?php _e( 'Webmention is a way for you to tell me "Hey, I have written a response to your post."', 'webmention' ); ?> </p>
-		<p><?php _e( 'Learn more about webmentions at <a href="http://webmention.net">webmention.net</a>', 'webmention' ); ?> </p>
+		<p><?php esc_html_e( 'Webmention is a way for you to tell me "Hey, I have written a response to your post."', 'webmention' ); ?> </p>
+		<p><?php esc_html_e( 'Learn more about webmentions at <a href="http://webmention.net">webmention.net</a>', 'webmention' ); ?> </p>
 		<?php
 	}
 
