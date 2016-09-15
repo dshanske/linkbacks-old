@@ -23,11 +23,14 @@ if ( ! class_exists( 'mf2_cleaner' ) ) {
 
 function indieweb_preprocess_linkback( $commentdata ) {
 	$parsed = Mf2\parse( $commentdata['remote_source_original'], $commentdata['source'] );
-	if( mf2_cleaner::isMicroformatCollection( $parsed ) ) {
+	if ( mf2_cleaner::isMicroformatCollection( $parsed ) ) {
 		$entries = mf2_cleaner::findMicroformatsByType( $parsed, 'h-entry' );
 		if ( $entries ) {
 			$entry = $entries[0];
-			$mf2comment = IndieWeb\comments\parse($entry, $commentdata['target']);
+			$mf2comment = IndieWeb\comments\parse( $entry, $commentdata['target'] );
+			if ( WP_DEBUG ) {
+				error_log( 'Comment Parsed From Webmention: ' . serialize( $mf2comment ) );
+			}
 			if ( ! array_key_exists( 'comment_meta', $commentdata ) ) {
 				$commentdata['comment_meta'] = array();
 			}
@@ -38,7 +41,7 @@ function indieweb_preprocess_linkback( $commentdata ) {
 				$date = new DateTime( $mf2comment['published'] );
 				$date->setTimezone( new DateTimeZone( 'UTC' ) );
 				$commentdata['comment_date_gmt'] = $date->format( 'Y-m-d H:i:s' );
-				$date->setTimezone( new DateTimeZone( get_option('timezone_string') ) );
+				$date->setTimezone( new DateTimeZone( get_option( 'timezone_string' ) ) );
 				$commentdata['comment_date'] = $date->format( 'Y-m-d H:i:s' );
 			}
 			if ( ! empty( $mf2comment['author'] ) ) {

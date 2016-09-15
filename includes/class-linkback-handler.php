@@ -35,9 +35,9 @@ final class Linkback_Handler {
 		return $author_url ? $author_url : $url;
 	}
 
-  /**
+	/**
 	 * Replaces the comment link with one to the canonical URL
-	 * 
+	 *
 	 * Establishes a defined meta key for this
 	 *
 	 *
@@ -98,7 +98,7 @@ final class Linkback_Handler {
 		if ( $avatar ) {
 			$args['url'] = $avatar;
 		}
-	
+
 		return $args;
 	}
 
@@ -344,6 +344,22 @@ final class Linkback_Handler {
 				);
 		// In the event the parsing declares a different canonical URL
 		register_meta( 'comment', '_linkback_url', $args );
+	}
+
+	/**
+		 * Save Meta - to Match the core functionality in wp_insert_comment.
+	 * To be Removed if This Functionality Hits Core.
+		 *
+		 * @param array $commentdata The new comment data
+		 * @param array $comment The old comment data
+		 */
+	public static function update_meta($comment_ID, $commentdata ) {
+		// If metadata is provided, store it.
+		if ( isset( $commentdata['comment_meta'] ) && is_array( $commentdata['comment_meta'] ) ) {
+			foreach ( $commentdata['comment_meta'] as $meta_key => $meta_value ) {
+				update_comment_meta( $comment_ID, $meta_key, $meta_value, true );
+			}
+		}
 	}
 
 

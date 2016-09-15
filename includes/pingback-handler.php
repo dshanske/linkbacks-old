@@ -44,17 +44,17 @@ function linkbacks_pingback_ping( $args ) {
 	$source = apply_filters( 'pingback_ping_source_uri', $source, $target );
 
 	if ( ! $source ) {
-		return $this->pingback_error( 0, __( 'A valid URL was not provided.' ) ); 
+		return $this->pingback_error( 0, __( 'A valid URL was not provided.' ) );
 	}
 
 	// Check if the page linked to is in our site
 	if ( ! stristr( $target, preg_replace( '/^https?:\/\//i', '', home_url() ) ) ) {
-		return $this->pingback_error( 0, __( 'Target is not on this site.' ) ); 
+		return $this->pingback_error( 0, __( 'Target is not on this site.' ) );
 	}
 
 	// let's find which post is linked to
 	$comment_post_ID = url_to_postid( $target );
-	
+
 	// add some kind of a "default" id to add linkbacks to a specific post/page
 	$comment_post_ID = apply_filters( 'linkback_post_id', $comment_post_ID, $target );
 
@@ -66,14 +66,14 @@ function linkbacks_pingback_ping( $args ) {
 
 	if ( url_to_postid( $source ) === $post_ID ) {
 		return $this->pingback_error( 0, __( 'The source URL and the target URL cannot both point to the same resource.' ) ); }
-	
+
 	$data = Linkback_Handler::check_dupes( $data );
 
 	// Let's check that the remote site didn't already pingback this entry
 	$dupes = get_comments( array(
 							'comment_post_ID' => $comment_post_ID,
-							'author_url' => $source
-				) );
+							'author_url' => $source,
+	) );
 
 	// very stupid, but gives time to the 'from' server to publish !
 	sleep( 1 );
@@ -82,13 +82,12 @@ function linkbacks_pingback_ping( $args ) {
 	$comment_type = 'pingback';
 
 	$commentdata = compact( 'source', 'target', 'comment_post_ID', 'comment_author_IP', 'comment_type' );
-	
+
 	$commentdata = Linkback_Handler::check_dupes( $commentdata );
 
 	if ( isset( $commentdata['comment_ID'] ) ) {
 		return $this->pingback_error( 48, __( 'The pingback has already been registered.' ) );
 	}
-
 
 	$commentdata = Linkback_Handler::linkback_verify( $commentdata );
 
@@ -96,9 +95,9 @@ function linkbacks_pingback_ping( $args ) {
 		// Allows for Error Logging or Handling
 		do_action( 'pingback_receive_error', $commentdata );
 		if ( 'targeturl' === $commentdata->get_error_code() ) {
-			return $this->pingback_error( 17, $commentdata->get_error_message() ); 
+			return $this->pingback_error( 17, $commentdata->get_error_message() );
 		}
-		return $this->pingback_error( 16, $commentdata->get_error_message() ); 
+		return $this->pingback_error( 16, $commentdata->get_error_message() );
 	}
 
 	$commentdata['comment_author_email'] = '';
@@ -121,7 +120,7 @@ function linkbacks_pingback_ping( $args ) {
 	do_action( 'pingback_post', $commentdata['comment_ID'], $commentdata );
 	if ( WP_DEBUG ) {
 		error_log( sprintf(__( 'Pingback from %1$s to %2$s registered. Keep the web talking! :-)' ),
-				$source, $target) );
+		$source, $target) );
 	}
 	return sprintf(__( 'Pingback from %1$s to %2$s registered. Keep the web talking! :-)' ), $source,
 	$target);

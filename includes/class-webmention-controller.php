@@ -185,7 +185,8 @@ final class Webmention_Controller {
 		$data['comment_parent'] = $data['comment_author_email'] = '';
 
 		// add comment meta
-		$data['comment_meta'] = array( '_linkback_source' => $data['source'], '_linkback_target' => $data['target'] );
+		$data['comment_meta'] = array( '_linkback_source' => $data['source'], '_linkback_target' =>
+				$data['target'] );
 
 		// Generate Extra Linkback Data from Meta Tags
 		$data = Linkback_Handler::generate_linkback_data( $data );
@@ -202,6 +203,8 @@ final class Webmention_Controller {
 			$data['comment_ID'] = wp_new_comment( $data );
 			do_action( 'webmention_post', $data['comment_ID'], $data );
 		} else {
+			// Temporary placeholder for webmention updates until Core supports an edit comment filter
+			$data = apply_filters( 'webmention_update', $data );
 			// save comment
 			wp_update_comment( $data );
 		}
