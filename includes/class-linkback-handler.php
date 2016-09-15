@@ -21,8 +21,8 @@ final class Linkback_Handler {
 	 * Replace this in displays with a parsed author url if available.
 	 * Establishes a defined meta key for this.
 	 *
-	 * @param string $url the author url.
-	 * @param int $id comment ID.
+	 * @param string     $url the author url.
+	 * @param int        $id comment ID.
 	 * @param WP_Comment $comment Comment Object.
 	 * @return string the replaced/parsed author url or the original comment link
 	 */
@@ -32,7 +32,7 @@ final class Linkback_Handler {
 		}
 		return $url;
 	}
-	
+
 	/**
 	 * Show avatars also on webmentions and pingbacks
 	 *
@@ -50,24 +50,29 @@ final class Linkback_Handler {
 	/**
 	 * Replaces the default avatar with the WebMention uf2 photo
 	 *
-	 * @param array $args Arguments passed to get_avatar_data(), after processing.
+	 * @param array             $args Arguments passed to get_avatar_data(), after processing.
 	 * @param int|string|object $id_or_email A user ID, email address, or comment object
 	 * @return array $args
-	*/
+	 */
 	public static function pre_get_avatar_data($args, $id_or_email) {
 		if ( ! isset( $args['class'] ) ) {
 			$args['class'] = array( 'u-photo' );
 		} else {
 			$args['class'][] = 'u-photo';
 		}
-		if ( ! is_object( $id_or_email ) || ! isset( $id_or_email->comment_type ) || ! get_comment_meta( $id_or_email->comment_ID, '_linkback_avatar', true ) ) {
+		if ( ! is_object( $id_or_email ) || ! isset( $id_or_email->comment_type ) ) {
 			return $args;
 		}
 		// check if comment has an avatar
 		$avatar = get_comment_meta( $id_or_email->comment_ID, '_linkback_avatar', true );
+		// If there is no avatar check where Semantic Linkbacks stores its avatar
+		if ( ! $avatar ) {
+			$avatar = get_comment_meta( $id_or_email->comment_ID, 'semantic_linkbacks_avatar', true );
+		}
 		if ( $avatar ) {
 			$args['url'] = $avatar;
 		}
+	
 		return $args;
 	}
 
@@ -76,8 +81,8 @@ final class Linkback_Handler {
 	 * Add Last Modified Meta to Webmentions Set With Timezone Offset
 	 */
 	public static function last_modified( $comment_id, $commentdata ) {
-		if ( 'webmention' == get_comment_type( $comment_id ) ) {
-			$date = new DateTime( null, new DateTimeZone( get_option('timezone_string') ) );
+		if ( 'webmention' === get_comment_type( $comment_id ) ) {
+			$date = new DateTime( null, new DateTimeZone( get_option( 'timezone_string' ) ) );
 			update_comment_meta( $comment_id, '_linkback_modified', $date->format( DATE_W3C ) );
 		}
 	}
@@ -87,13 +92,13 @@ final class Linkback_Handler {
 		$host = wp_parse_url( $data['comment_author_url'] );
 		// strip leading www, if any
 		$host = preg_replace( '/^www\./', '', $host['host'] );
-		
+
 		// use OGP title if available
 		if ( array_key_exists( 'author', $meta_tags ) ) {
 			$data['comment_author'] = $meta['author'];
 		} elseif ( array_key_exists( 'og:title', $meta_tags ) ) {
 			// Use Open Graph Title if set
-			$data['comment_author'] =  $meta_tags['og:title'];
+			$data['comment_author'] = $meta_tags['og:title'];
 		} elseif ( preg_match( '/<title>(.+)<\/title>/i', $data['remote_source_original'], $match ) ) { // use title
 			$data['comment_author'] = trim( $match[1] );
 		} else {
@@ -104,16 +109,15 @@ final class Linkback_Handler {
 			$date = new DateTime( $meta_tags['article:published_time'] );
 			$date->setTimezone( new DateTimeZone( 'UTC' ) );
 			$data['comment_date_gmt'] = $date->format( 'Y-m-d H:i:s' );
-			$date->setTimezone( new DateTimeZone( get_option('timezone_string') ) );
+			$date->setTimezone( new DateTimeZone( get_option( 'timezone_string' ) ) );
 			$data['comment_date'] = $date->format( 'Y-m-d H:i:s' );
 		}
-		
+
 		// Generate simple content.
 		if ( array_key_exists( 'og:description', $meta_tags ) ) {
 			$data['comment_content'] = $meta_tags['og:description'];
-		}
-		else {
-			$data['comment_content'] = sprintf( __( 'Mentioned on <a href="%s">%s</a>', 'linkbacks'), esc_url( $data['comment_author_url'] ), $host );
+		} else {
+			$data['comment_content'] = sprintf( __( 'Mentioned on <a href="%s">%s</a>', 'linkbacks' ), esc_url( $data['comment_author_url'] ), $host );
 		}
 
 		return $data;
@@ -143,21 +147,21 @@ final class Linkback_Handler {
 	}
 
 	/**
- * Verify a linkback and either return an error if not verified or return the array with retrieved
- * data.
- *
- * @param array $data {
- *              @param $comment_type
- *              @param $comment_author_url
- *              @param $comment_author_IP
- *              @param $target
- * }
- *
- * @return array|WP_Error $data Return Error Object or array with added fields {
- *              @param $remote_source
- *              @param $remote_source_original
- *              @param $content_type
- */
+	 * Verify a linkback and either return an error if not verified or return the array with retrieved
+	 * data.
+	 *
+	 * @param array                  $data {
+	 *              @param $comment_type
+	 *              @param $comment_author_url
+	 *              @param $comment_author_IP
+	 *              @param $target
+	 * }
+	 *
+	 * @return array|WP_Error $data Return Error Object or array with added fields {
+	 *              @param $remote_source
+	 *              @param $remote_source_original
+	 *              @param $content_type
+	 */
 	public static function linkback_verify( $data ) {
 		global $wp_version;
 		if ( ! is_array( $data ) || empty( $data ) ) {
@@ -168,7 +172,7 @@ final class Linkback_Handler {
 						'timeout' => 10,
 						'limit_response_size' => 153600,
 						'redirection' => 5,
-						'user-agent' => "$user_agent; verifying " . $data['comment_type'] .  "linkback from " . $data['comment_author_IP'],
+						'user-agent' => "$user_agent; verifying " . $data['comment_type'] .  'linkback from ' . $data['comment_author_IP'],
 						);
 		$response = wp_safe_remote_head( $data['source'], $args );
 		  // check if source is accessible
@@ -182,22 +186,23 @@ final class Linkback_Handler {
 		if ( preg_match( '#(image|audio|video|model)/#is', wp_remote_retrieve_header( $response, 'content-type' ) ) ) {
 			return new WP_Error( 'content-type', 'Content Type is Media', array( 'status' => 400 ) );
 		}
-		
+
 		switch ( $response_code ) {
 			case 200:
 				$response = wp_safe_remote_get( $data['source'], $args );
 				break;
 			case 410:
-				return new WP_Error( 'deleted', 'Page has Been Deleted', array( 'data' => $data )  );
+				return new WP_Error( 'deleted', 'Page has Been Deleted', array( 'data' => $data ) );
 			case 452:
 				return new WP_Error( 'removed', 'Page Removed for Legal Reasons', array( 'data' => $data ) );
 			default:
 				return new WP_Error( 'sourceurl', wp_remote_retrieve_response_message( $response ), array(
-							'status' => 400 ) );
+					'status' => 400,
+				) );
 		}
 
 		$remote_source_original = wp_remote_retrieve_body( $response );
-		
+
 		/**
 		 * Filters the linkback remote source.
 		 *
@@ -207,7 +212,6 @@ final class Linkback_Handler {
 		 * @param string $target  URL of the page linked to.
 		 */
 		$remote_source_original = apply_filters( 'pre_remote_source', $remote_source_original, $data['target'] );
-
 
 		// check if source really links to target
 		if ( ! strpos( htmlspecialchars_decode( $remote_source_original ), str_replace( array(
@@ -296,14 +300,14 @@ final class Linkback_Handler {
 		// offset in ISO8601 format with timezone offset included. Parsing can override this with a
 		// timestamp supplied by the remote site as needed.
 		register_meta( 'comment', '_linkback_modified', $args );
-    
+
 		$args = array(
 				'type' => 'string',
 				'description' => 'Type of Linkback',
 				'single' => true,
 				'show_in_rest' => true,
 				);
-    // Type of Linkback - mention, reply, RSVP, like, etc
+		// Type of Linkback - mention, reply, RSVP, like, etc
 		register_meta( 'comment', '_linkback_type', $args );
 
 		$args = array(
@@ -312,7 +316,7 @@ final class Linkback_Handler {
 				'single' => true,
 				'show_in_rest' => true,
 				);
-    // In the event the parsing declares a different canonical URL
+		// In the event the parsing declares a different canonical URL
 		register_meta( 'comment', '_linkback_url', $args );
 	}
 
