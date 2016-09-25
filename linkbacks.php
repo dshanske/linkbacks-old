@@ -29,7 +29,6 @@
 
 /**
  * Init our plugin.
- *
  */
 function linkbacks_init() {
 	require_once( dirname( __FILE__ ) . '/includes/functions.php' );

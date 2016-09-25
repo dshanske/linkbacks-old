@@ -58,6 +58,59 @@ final class Linkback_Handler {
 		return $link;
 	}
 
+	/**
+	 * Returns an array of linkback texts to their translated and pretty display versions
+	 *
+	 * @return array The array of translated display texts.
+	 */
+	public static function get_linkback_type_text() {
+		$strings = array( 'mention'		=> __( '%1$s mentioned %2$s', 'linkbacks' ),
+											'reply'			=> __( '%1$s replied to %2$s', 'linkbacks' ),
+											'repost'		=> __( '%1$s reposted %2$s', 'linkbacks' ),
+											'like'			=> __( '%1$s liked %2$s',		'linkbacks' ),
+											'tag'				=> __( '%1$s tagged %2$s',		'linkbacks' ),
+											'bookmark'	=> __( '%1$s bookmarked %2$s', 'linkbacks' )
+				);
+		return $strings;
+	}
+
+	/**
+	 * Generate full comment text if displayed as comment.
+	 *
+	 * @param string $text the comment text
+	 * @param WP_Comment $comment the comment object
+	 * @param array $args a list of arguments
+	 * @return string the filtered comment text
+	 */
+	public static function comment_text( $text, $comment = null, $args = array() ) {
+		if ( ! is_object( $comment ) ) {
+			$comment = get_comment( $comment );
+		}
+		if ( ! $comment ) {
+			return $text;
+		}
+		if ( '' == $comment->comment_type ) {
+			return $text;
+		}
+		return self::linkback_text( $comment );
+	}
+
+	/**
+	 * Generate single line description for mention.
+	 *
+	 * @param WP_Comment $comment the comment object
+	 * @return string the comment text
+	 */
+	public static function linkback_text( $comment = null ) {
+		if ( ! is_object( $comment ) ) {
+			$comment = get_comment( $comment );
+		}
+		if ( ! $comment ) {
+			return false;
+		}
+		echo 'Test';
+	}
+
 
 	/**
 	 * Show avatars also on webmentions and pingbacks
@@ -218,13 +271,11 @@ final class Linkback_Handler {
 				$response = wp_safe_remote_get( $data['source'], $args );
 				break;
 			case 410:
-				return new WP_Error( 'deleted', 'Page has Been Deleted', array( 'data' => $data ) );
+				return new WP_Error( 'deleted', 'Page has Been Deleted', array( 'status' => 400, 'data' => $data ) );
 			case 452:
-				return new WP_Error( 'removed', 'Page Removed for Legal Reasons', array( 'data' => $data ) );
+				return new WP_Error( 'removed', 'Page Removed for Legal Reasons', array( 'status' => 400, 'data' => $data ) );
 			default:
-				return new WP_Error( 'sourceurl', wp_remote_retrieve_response_message( $response ), array(
-					'status' => 400,
-				) );
+				return new WP_Error( 'sourceurl', wp_remote_retrieve_response_message( $response ), array( 'status' => 400 ) );
 		}
 
 		$remote_source_original = wp_remote_retrieve_body( $response );
@@ -297,16 +348,6 @@ final class Linkback_Handler {
 
 		$args = array(
 				'type' => 'string',
-				'description' => 'Author Name for the Linkback',
-				'single' => true,
-				'show_in_rest' => true,
-				);
-		// The author name in a linkback is used for the Site Title.
-		// This represents, if found, an actual author name.
-		register_meta( 'comment', '_linkback_author_name' );
-
-		$args = array(
-				'type' => 'string',
 				'description' => 'Avatar for the Linkback',
 				'single' => true,
 				'show_in_rest' => true,
@@ -362,6 +403,53 @@ final class Linkback_Handler {
 		}
 	}
 
+	public static function get_linkback_url( $comment = null ) {
+		// get URL canonical url...
+		$url = get_comment_meta( $comment->comment_ID, '_linkback_url', true );
+		// ...or fall back to source
+		if ( ! $url ) {
+			$url = get_comment_meta( $comment->comment_ID, '_linkback_source', true );
+		}
+
+		// get URL canonical url...
+		$url = get_comment_meta( $comment->comment_ID, 'semantic_linkbacks_canonical', true );
+		// ...or fall back to source
+		if ( ! $url ) {
+			$url = get_comment_meta( $comment->comment_ID, 'semantic_linkbacks_source', true );
+		}
+		// or fallback to author url
+		if ( ! $url ) {
+			$url = $comment->comment_author_url;
+		}
+		return $url;
+	}
+
+
+	/**
+	 * Returns an array of linkback type slugs to their translated and pretty display versions
+	 *
+	 * @return array The array of translated linkback type names.
+	 */
+	public static function get_linkback_type_strings() {
+		$strings = array(
+				'mention'		=> __( 'Mention',	'linkbacks' ),
+				'reply'			=> __( 'Reply',		'linkbacks' ),
+				'repost'		=> __( 'Repost',	'linkbacks' ),
+				'like'			=> __( 'Like',		'linkbacks' ),
+				'tag'			=> __( 'Tag',		'linkbacks' ),
+				'tagged' => __( 'Tagged', 'linkbacks' ), 
+				'bookmark'		=> __( 'Bookmark', 'linkbacks' ),
+				'rsvp'		=> __( 'RSVP', 'linkbacks' ) );
+		return $strings;
+	}
+
+	public static function comment_args( $args ){
+		$args['walker']= new Walker_Comment_Linkback();
+		unset($args['callback']);
+		unset($args['end-callback']);
+		$args['short_ping'] = true;
+		return $args;
+	}
 
 }
 

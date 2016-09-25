@@ -11,6 +11,7 @@ require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-linkback-handler
 require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-webmention-controller.php' );
 require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-linkback-sender.php' );
 require_once( dirname( dirname( __FILE__ ) ) . '/includes/pingback-handler.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-walker-comment-linkback.php' );
 
 // This includes libraries that require namespaces which are not present till PHP 5.3
 // So this enhancement will not be loaded if there is a pre 5.3 version rather than
@@ -47,6 +48,8 @@ if ( ! defined( 'WEBMENTION_HANDLER' ) ) {
 // Add webmention to comment dropdown
 add_action( 'admin_comment_types_dropdown', array( 'Webmention_Controller', 'comment_types_dropdown' ) );
 
+add_filter( 'wp_list_comments_args', array( 'Linkback_Handler', 'comment_args' ) );
+
 // Add to Comment Types That Accept an Avatar
 add_filter( 'get_avatar_comment_types', array( 'Linkback_Handler', 'get_avatar_comment_types' ) );
 
@@ -59,7 +62,8 @@ add_filter( 'get_comment_author_url', array( 'Linkback_Handler', 'get_comment_au
 // Allows Comment Author for Linkbacks and Pingbacks to be Overridden on Display
 add_filter( 'get_comment_link', array( 'Linkback_Handler', 'get_comment_link' ), 99, 3 );
 
-
+// Adds text if none is present
+add_filter( 'comment_text', array( 'Linkback_Handler', 'comment_text' ), 12, 3 );
 
 // Add Last Modified Flag for Webmentions on Edit Comment
 add_action( 'edit_comment', array( 'Linkback_Handler', 'last_modified' ), 10, 2 );

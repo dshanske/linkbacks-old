@@ -22,6 +22,9 @@ if ( ! class_exists( 'mf2_cleaner' ) ) {
 }
 
 function indieweb_preprocess_linkback( $commentdata ) {
+	if ( ! array_key_exists( 'remote_source_original', $commentdata ) ) {
+		return $commentdata;
+	}
 	$parsed = Mf2\parse( $commentdata['remote_source_original'], $commentdata['source'] );
 	if ( mf2_cleaner::isMicroformatCollection( $parsed ) ) {
 		$entries = mf2_cleaner::findMicroformatsByType( $parsed, 'h-entry' );
@@ -54,10 +57,17 @@ function indieweb_preprocess_linkback( $commentdata ) {
 			}
 			if ( ! empty( $mf2comment['type'] ) ) {
 				$commentdata['comment_meta']['_linkback_type'] = $mf2comment['type'];
+				if ( 'reply' == $mf2comment['type'] ) {
+					$commentdata['comment_type'] = '';
+				}
 			}
 			if ( ! empty( $mf2comment['url'] ) ) {
 				$commentdata['comment_meta']['_linkback_url'] = $mf2comment['url'];
 			}
+			if ( ! empty( $mf2comment['rsvp'] ) ) {
+				$commentdata['comment_meta']['_linkback_rsvp'] = $mf2comment['rsvp'];
+			}
+
 		}
 	}
 	return $commentdata;

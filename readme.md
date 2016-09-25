@@ -23,8 +23,9 @@ webmention endpoint, disabling the Core implementation of pingback sending.
 * It takes over receiving of webmentions and pingbacks to move them to a common base for as
 many subfunctions as possible.
 * Uses new register_meta enhancements in 4.6 to declare linkback specific data.
-* Supports sending webmentions for for non-posts to an arbitrary post_ID to capture them.
+* Supports sending linkbacks for non-posts to an arbitrary post_ID to capture them.
 * Supports synchronous and basic asynchronous(delayed verification) for webmentions
+* If current storage structure is not used will check Semantic Linkbacks structure for backcompat
 
 ## ToDo ##
 
