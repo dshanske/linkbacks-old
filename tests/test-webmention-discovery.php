@@ -1,5 +1,5 @@
 <?php
-class DiscoverTest extends WP_UnitTestCase {
+class WebmentionDiscoverTest extends WP_UnitTestCase {
 
 
 	public function headers( $link ) {
@@ -37,8 +37,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/1';
 
 		add_filter( 'pre_http_request', array( $this, 'discover_relative_httplink' ) );
-		$endpoint = Webmention_Sender::discover_endpoint( $url );
-		$this->assertSame( 'http://www.example.com/test/1/webmention'  , $endpoint );
+		$endpoint = Linkback_Sender::discover_endpoint( $url );
+		$this->assertSame( 'http://www.example.com/test/1/webmention'  , $endpoint['webmention'] );
 	}
 
   public function discover_absolute_httplink() {
@@ -54,8 +54,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/2';
 
     add_filter( 'pre_http_request', array( $this, 'discover_absolute_httplink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/2/webmention'  , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/2/webmention'  , $endpoint['webmention'] );
   }
 
   public function discover_quoted_httplink() {
@@ -71,8 +71,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/2';
 
     add_filter( 'pre_http_request', array( $this, 'discover_quoted_httplink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/8/webmention'  , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/8/webmention'  , $endpoint['webmention'] );
   }
 
 
@@ -89,8 +89,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/10';
 
     add_filter( 'pre_http_request', array( $this, 'discover_multiple_httplink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/10/webmention'  , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/10/webmention'  , $endpoint['webmention'] );
 	}
 
   public function discover_casesensitive_httplink() {
@@ -108,8 +108,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/7';
 
     add_filter( 'pre_http_request', array( $this, 'discover_casesensitive_httplink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-		$this->assertSame( 'http://www.example.com/test/7/webmention'  , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+		$this->assertSame( 'http://www.example.com/test/7/webmention'  , $endpoint['webmention'] );
   }
 
 
@@ -126,8 +126,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/3';
 
     add_filter( 'pre_http_request', array( $this, 'discover_relative_htmllink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/3/webmention' , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/3/webmention' , $endpoint['webmention'] );
   }
 
  public function discover_absolute_htmllink() {
@@ -142,8 +142,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/4';
 
     add_filter( 'pre_http_request', array( $this, 'discover_absolute_htmllink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/4/webmention' , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/4/webmention' , $endpoint['webmention'] );
   }
 
 
@@ -158,8 +158,8 @@ class DiscoverTest extends WP_UnitTestCase {
 	public function test_discover_querystring_htmllink() {
 		$url = 'http://www.example.com/test/4';
 		add_filter( 'pre_http_request', array( $this, 'discover_absolute_htmllink' ) );
-		$endpoint = Webmention_Sender::discover_endpoint( $url );
-		$this->assertSame( 'http://www.example.com/test/4/webmention' , $endpoint );
+		$endpoint = Linkback_Sender::discover_endpoint( $url );
+		$this->assertSame( 'http://www.example.com/test/4/webmention' , $endpoint['webmention'] );
 	}
 
 
@@ -177,8 +177,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/9';
 
     add_filter( 'pre_http_request', array( $this, 'discover_multiple_htmllink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/9/webmention' , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/9/webmention' , $endpoint['webmention'] );
   }
 
  public function discover_notwebmention_htmllink() {
@@ -193,8 +193,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/12';
 
     add_filter( 'pre_http_request', array( $this, 'discover_notwebmention_htmllink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/121/webmention' , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/121/webmention' , $endpoint['webmention'] );
   }
 
  public function discover_empty_htmllink() {
@@ -209,8 +209,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/15';
 
     add_filter( 'pre_http_request', array( $this, 'discover_empty_htmllink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/15' , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/15' , $endpoint['webmention'] );
   }
 
 
@@ -227,8 +227,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/5';
 
     add_filter( 'pre_http_request', array( $this, 'discover_relative_hreflink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/5/webmention' , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/5/webmention' , $endpoint['webmention'] );
   }
 
   public function discover_absolute_hreflink() {
@@ -243,8 +243,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/6';
 
     add_filter( 'pre_http_request', array( $this, 'discover_absolute_hreflink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/6/webmention' , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/6/webmention' , $endpoint['webmention'] );
   }
 
   public function discover_comment_hreflink() {
@@ -259,8 +259,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/13';
 
     add_filter( 'pre_http_request', array( $this, 'discover_comment_hreflink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/131/webmention' , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/131/webmention' , $endpoint['webmention'] );
   }
 
   public function discover_escaped_hreflink() {
@@ -275,8 +275,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/14';
 
     add_filter( 'pre_http_request', array( $this, 'discover_escaped_hreflink' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/141/webmention' , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/141/webmention' , $endpoint['webmention'] );
   }
 
 
@@ -294,8 +294,8 @@ class DiscoverTest extends WP_UnitTestCase {
     $url = 'http://www.example.com/test/11';
 
     add_filter( 'pre_http_request', array( $this, 'discover_multiple_link' ) );
-    $endpoint = Webmention_Sender::discover_endpoint( $url );
-    $this->assertSame( 'http://www.example.com/test/11/webmention' , $endpoint );
+    $endpoint = Linkback_Sender::discover_endpoint( $url );
+    $this->assertSame( 'http://www.example.com/test/11/webmention' , $endpoint['webmention'] );
 	}
 
 

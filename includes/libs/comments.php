@@ -131,6 +131,30 @@ function parse($mf, $refURL=false, $maxTextLength=150, $maxLines=2) {
         $type = 'like';
     }
 
+		// Check if this post is a "favorite" (Should be deprecated in the future and maps to like right now)
+		if($refURL && array_key_exists('favorite', $properties)) {
+			collectURLs($properties['favorite']);
+			if(in_array($refURL, $properties['favorite']))
+				$type = 'like';
+		}
+
+		// Check if this post is a "favorite-of" (Should be deprecated in the future and maps to like right now)
+		if($refURL && array_key_exists('favorite-of', $properties)) {
+			collectURLs($properties['favorite-of']);
+			if(in_array($refURL, $properties['favorite-of']))
+				$type = 'like';
+		} 
+
+
+
+		// Check if this post is a "bookmark-of"
+		if($refURL && array_key_exists('bookmark-of', $properties)) {
+			collectURLs($properties['bookmark-of']);
+			if(in_array($refURL, $properties['bookmark-of']))
+				$type = 'bookmark';
+		}
+
+
     // If the post has an explicit in-reply-to property, verify it matches $refURL and set the type to "reply"
     if($refURL && array_key_exists('in-reply-to', $properties)) {
       // in-reply-to may be a string or an h-cite
