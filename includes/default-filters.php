@@ -18,7 +18,7 @@ require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-walker-comment-l
 // So this enhancement will not be loaded if there is a pre 5.3 version rather than
 // backporting the libraries.
 if ( version_compare( PHP_VERSION, '5.3', '>' ) ) {
-	require_once dirname( dirname( __FILE__ ) ) . '/includes/indieweb-comments.php';
+	require_once dirname( dirname( __FILE__ ) ) . '/includes/mf2-comments.php';
 	add_filter( 'preprocess_comment', 'indieweb_preprocess_linkback', 0 );
 	add_filter( 'webmention_update', 'indieweb_preprocess_linkback', 0 );
 }
