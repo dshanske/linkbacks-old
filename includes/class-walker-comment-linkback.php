@@ -100,7 +100,7 @@ class Walker_Comment_Linkback extends Walker_Comment {
 			$linkback_type = get_comment_meta($comment->comment_ID, "semantic_linkbacks_type", true);
 		}
 
-		if (!in_array($linkback_type, array_keys(Linkback_Handler::get_linkback_type_strings()))) {
+		if (!in_array($linkback_type, array_keys(Linkback_Display::get_linkback_type_strings()))) {
 			$linkback_type = "mention";
 		}
 
@@ -116,7 +116,7 @@ class Walker_Comment_Linkback extends Walker_Comment {
 		$url = get_comment_meta($comment->comment_ID, "semantic_linkbacks_canonical", true);
 
 		// generate output
-		$linkback_type_strings = Linkback_Handler::get_linkback_type_strings();
+		$linkback_type_strings = Linkback_Display::get_linkback_type_strings();
 		$text = $linkback_type_strings[ $linkback_type ] . ': ';
 		
 		return $text;
@@ -178,7 +178,7 @@ class Walker_Comment_Linkback extends Walker_Comment {
 					</span><!-- .comment-author -->
 					<?php     
 						if ($comment || $semantic_linkbacks_type || $comment->comment_type == "" || $semantic_linkbacks_type == "reply") {
-							 $url = Linkback_Handler::get_linkback_url( $comment );
+							 $url = Linkback_Display::get_linkback_url( $comment );
 							 if ($url) {
     					 	$host = parse_url($url, PHP_URL_HOST);
     					 	// strip leading www, if any

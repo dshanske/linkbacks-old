@@ -11,6 +11,7 @@ require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-linkback-handler
 require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-webmention-controller.php' );
 require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-linkback-sender.php' );
 require_once( dirname( dirname( __FILE__ ) ) . '/includes/pingback-handler.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-linkback-display.php' );
 require_once( dirname( dirname( __FILE__ ) ) . '/includes/class-walker-comment-linkback.php' );
 
 // This includes libraries that require namespaces which are not present till PHP 5.3
@@ -48,22 +49,22 @@ if ( ! defined( 'WEBMENTION_HANDLER' ) ) {
 // Add webmention to comment dropdown
 add_action( 'admin_comment_types_dropdown', array( 'Webmention_Controller', 'comment_types_dropdown' ) );
 
-add_filter( 'wp_list_comments_args', array( 'Linkback_Handler', 'comment_args' ) );
+add_filter( 'wp_list_comments_args', array( 'Linkback_Display', 'comment_args' ) );
 
 // Add to Comment Types That Accept an Avatar
-add_filter( 'get_avatar_comment_types', array( 'Linkback_Handler', 'get_avatar_comment_types' ) );
+add_filter( 'get_avatar_comment_types', array( 'Linkback_Display', 'get_avatar_comment_types' ) );
 
 // Add Optiojns to Avatar Data
-add_filter( 'pre_get_avatar_data', array( 'Linkback_Handler', 'pre_get_avatar_data' ), 11, 3 );
+add_filter( 'pre_get_avatar_data', array( 'Linkback_Display', 'pre_get_avatar_data' ), 11, 3 );
 
 // Allows Comment Author for Linkbacks and Pingbacks to be Overridden on Display
-add_filter( 'get_comment_author_url', array( 'Linkback_Handler', 'get_comment_author_url' ), 99, 3 );
+add_filter( 'get_comment_author_url', array( 'Linkback_Display', 'get_comment_author_url' ), 99, 3 );
 
 // Allows Comment Author for Linkbacks and Pingbacks to be Overridden on Display
-add_filter( 'get_comment_link', array( 'Linkback_Handler', 'get_comment_link' ), 99, 3 );
+add_filter( 'get_comment_link', array( 'Linkback_Display', 'get_comment_link' ), 99, 3 );
 
 // Adds text if none is present
-add_filter( 'comment_text', array( 'Linkback_Handler', 'comment_text' ), 12, 3 );
+add_filter( 'comment_text', array( 'Linkback_Display', 'comment_text' ), 12, 3 );
 
 // Add Last Modified Flag for Webmentions on Edit Comment
 add_action( 'edit_comment', array( 'Linkback_Handler', 'last_modified' ), 10, 2 );
