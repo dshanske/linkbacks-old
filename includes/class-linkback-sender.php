@@ -9,18 +9,6 @@
 final class Linkback_Sender {
 
 	/**
-	 * Marks the post as "no webmentions sent yet"
-	 *
-	 * @param int $post_ID
-	 */
-	public static function publish_post_hook( $post_ID ) {
-		// check if pingbacks are enabled
-		if ( get_option( 'default_pingback_flag' ) ) {
-			add_post_meta( $post_ID, '_mentionme', '1', true );
-		}
-	}
-
-	/**
 	 * Send Linkback
 	 *
 	 * @param string $source source url
