@@ -128,8 +128,9 @@ final class Linkback_Sender {
 		$links = array();
 
 		// Find all external links and embeds in the source
-		// $links = array_merge( wp_extract_urls_link( $post->post_content ), wp_extract_urls_embed( $post->post_content ) );
-		$links = wp_extract_urls( $post->post_content );
+		$links = array_merge( wp_extract_urls_link( $post->post_content ), wp_extract_urls_embed( $post->post_content ) );
+		// Alternatively you can extract all URLs in text
+		// $links = wp_extract_urls( $post->post_content );
 
 		// filter links
 		$post_links = apply_filters( 'linkback_links', $links, $post_ID );
