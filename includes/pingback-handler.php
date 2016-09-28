@@ -65,15 +65,8 @@ function linkbacks_pingback_ping( $args ) {
 		return $this->pingback_error( 33, __( 'The specified target URL cannot be used as a target. It either doesn&#8217;t exist, or it is not a pingback-enabled resource.' ) ); }
 
 	if ( url_to_postid( $source ) === $post_ID ) {
-		return $this->pingback_error( 0, __( 'The source URL and the target URL cannot both point to the same resource.' ) ); }
-
-	$data = Linkback_Handler::check_dupes( $data );
-
-	// Let's check that the remote site didn't already pingback this entry
-	$dupes = get_comments( array(
-							'comment_post_ID' => $comment_post_ID,
-							'author_url' => $source,
-	) );
+		return $this->pingback_error( 0, __( 'The source URL and the target URL cannot both point to the same resource.' ) );
+	}
 
 	// very stupid, but gives time to the 'from' server to publish !
 	sleep( 1 );

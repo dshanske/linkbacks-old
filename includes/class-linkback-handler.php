@@ -111,7 +111,7 @@ final class Linkback_Handler {
 						'timeout' => 10,
 						'limit_response_size' => 153600,
 						'redirection' => 5,
-						'user-agent' => "$user_agent; verifying " . $data['comment_type'] .  'linkback from ' . $data['comment_author_IP'],
+						'user-agent' => "$user_agent; verifying " . $data['comment_type'] .  ' from ' . $data['comment_author_IP'],
 						);
 		$response = wp_safe_remote_head( $data['source'], $args );
 		  // check if source is accessible
