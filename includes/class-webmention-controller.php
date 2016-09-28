@@ -185,8 +185,10 @@ final class Webmention_Controller {
 		$data['comment_parent'] = $data['comment_author_email'] = '';
 
 		// add comment meta
-		$data['comment_meta'] = array( '_linkback_source' => $data['source'], '_linkback_target' =>
-				$data['target'] );
+		$data['comment_meta'] = array(
+				'_linkback_source' => $data['source'],
+				'_linkback_target' => $data['target'],
+		);,
 
 		// Generate Extra Linkback Data from Meta Tags
 		$data = Linkback_Handler::generate_linkback_data( $data );
