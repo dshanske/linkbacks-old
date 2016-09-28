@@ -95,7 +95,11 @@ function linkbacks_pingback_ping( $args ) {
 
 	$commentdata['comment_author_email'] = '';
 	$commentdata['comment_author_url'] = wp_unslash( $source );
-	$commentdata['comment_meta'] = array( '_linkback_source' => $source, '_linkback_target' => $target );
+	$commentdata['comment_meta'] = array(
+			'_linkback_source' => $source,
+			'_linkback_target' => $target,
+			'_linkback_type' => 'mention',// Default Type
+			);
 
 	$commentdata = Linkback_Handler::generate_linkback_data( $commentdata );
 

@@ -188,6 +188,7 @@ final class Webmention_Controller {
 		$data['comment_meta'] = array(
 				'_linkback_source' => $data['source'],
 				'_linkback_target' => $data['target'],
+				'_linkback_type' => 'mention',// Set Default Type
 		);
 
 		// Generate Extra Linkback Data from Meta Tags
@@ -212,6 +213,10 @@ final class Webmention_Controller {
 		}
 		// re-add flood control
 		add_filter( 'check_comment_flood', 'check_comment_flood_db', 10, 3 );
+
+		if ( WP_DEBUG ) {
+			error_log( sprintf( __( 'Webmention from %1$s to %2$s received. Keep the web talking! :-)' ), $source, $target ) );
+		}
 
 		// Return the comment data
 		return $data;
