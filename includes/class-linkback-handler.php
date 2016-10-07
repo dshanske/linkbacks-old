@@ -89,22 +89,22 @@ final class Linkback_Handler {
 	 * Verify a linkback and either return an error if not verified or return the array with retrieved
 	 * data.
 	 *
-	 * @param array                  $data {
-	 *              @param $comment_type
-	 *              @param $comment_author_url
-	 *              @param $comment_author_IP
-	 *              @param $target
+	 * @param array $data {
+	 *	$comment_type
+	 * 	$comment_author_url
+	 *	$comment_author_IP
+	 *	$target
 	 * }
 	 *
 	 * @return array|WP_Error $data Return Error Object or array with added fields {
-	 *              @param $remote_source
-	 *              @param $remote_source_original
-	 *              @param $content_type
+	 * 	@param $remote_source
+	 * 	@param $remote_source_original
+	 * 	@param $content_type
 	 */
 	public static function linkback_verify( $data ) {
 		global $wp_version;
 		if ( ! is_array( $data ) || empty( $data ) ) {
-			return new WP_Error( 'invaliddata', 'Invalid Data Passed', array( 'status' => 500 ) );
+			return new WP_Error( 'invalid_data', __( 'Invalid Data Passed', 'linkbacks' ), array( 'status' => 500 ) );
 		}
 		$user_agent = apply_filters( 'http_headers_useragent', 'WordPress/' . $wp_version . '; ' . get_bloginfo( 'url' ) );
 		$args = array(
@@ -116,14 +116,14 @@ final class Linkback_Handler {
 		$response = wp_safe_remote_head( $data['source'], $args );
 		  // check if source is accessible
 		if ( is_wp_error( $response ) ) {
-			  return new WP_Error( 'sourceurl', 'Source URL not found', array( 'status' => 400 ) );
+			  return new WP_Error( 'source_url', __( 'Source URL not found', 'linkbacks' ), array( 'status' => 400 ) );
 		}
 
 		// A valid response code from the other server would not be considered an error.
 		$response_code = wp_remote_retrieve_response_code( $response );
 		// not an (x)html, sgml, or xml page, no use going further
 		if ( preg_match( '#(image|audio|video|model)/#is', wp_remote_retrieve_header( $response, 'content-type' ) ) ) {
-			return new WP_Error( 'content-type', 'Content Type is Media', array( 'status' => 400 ) );
+			return new WP_Error( 'content_type', __( 'Content Type is Media', 'linkbacks' ), array( 'status' => 400 ) );
 		}
 
 		switch ( $response_code ) {
@@ -131,11 +131,11 @@ final class Linkback_Handler {
 				$response = wp_safe_remote_get( $data['source'], $args );
 				break;
 			case 410:
-				return new WP_Error( 'deleted', 'Page has Been Deleted', array( 'status' => 400, 'data' => $data ) );
+				return new WP_Error( 'deleted', __( 'Page has Been Deleted', 'linkbacks' ), array( 'status' => 400, 'data' => $data ) );
 			case 452:
-				return new WP_Error( 'removed', 'Page Removed for Legal Reasons', array( 'status' => 400, 'data' => $data ) );
+				return new WP_Error( 'removed', __( 'Page Removed for Legal Reasons' 'linkbacks' ), array( 'status' => 400, 'data' => $data ) );
 			default:
-				return new WP_Error( 'sourceurl', wp_remote_retrieve_response_message( $response ), array( 'status' => 400 ) );
+				return new WP_Error( 'source_url', wp_remote_retrieve_response_message( $response ), array( 'status' => 400 ) );
 		}
 
 		$remote_source_original = wp_remote_retrieve_body( $response );

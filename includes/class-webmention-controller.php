@@ -70,9 +70,8 @@ final class Webmention_Controller {
 			// status_header( 400 );
 			$server->send_header( 'Content-Type', 'text/html; charset=' . get_option( 'blog_charset' ) );
 		}
-		get_header();
-		self::webmention_form();
-		get_footer();
+		$template = apply_filters( 'webmention_endpoint_form', plugin_dir_path( __FILE__ ) . '../templates/webmention-endpoint-form.php' );
+		load_template( $template );
 		return true;
 	}
 
@@ -88,17 +87,17 @@ final class Webmention_Controller {
 	public static function post( $request ) {
 		$params = array_filter( $request->get_params() );
 		if ( ! isset( $params['source'] ) ) {
-			return new WP_Error( 'source' , 'Source is Missing', array( 'status' => 400 ) );
+			return new WP_Error( 'source_missing' , __( 'Source is Missing' 'linkbacks'), array( 'status' => 400 ) );
 		}
 		if ( ! isset( $params['target'] ) ) {
-			return new WP_Error( 'target', 'Target is Missing', array( 'status' => 400 ) );
+			return new WP_Error( 'target_missing', __( 'Target is Missing', 'linkbacks'), array( 'status' => 400 ) );
 		}
 
 		$source = $params['source'];
 		$target = $params['target'];
 
 		if ( ! stristr( $target, preg_replace( '/^https?:\/\//i', '', home_url() ) ) ) {
-			return new WP_Error( 'target', 'Target is Not on this Domain', array( 'status' => 400 ) );
+			return new WP_Error( 'target_domain', __( 'Target is Not on this Domain', 'linkbacks' ), array( 'status' => 400 ) );
 		}
 		if ( WP_DEBUG ) {
 			error_log( 'Webmention Received: ' . $source . ' => ' . $params['target'] );
@@ -109,23 +108,24 @@ final class Webmention_Controller {
 		$comment_post_ID = apply_filters( 'linkback_post_id', $comment_post_ID, $target );
 
 		if ( url_to_postid( $source ) === $comment_post_ID ) {
-			return new WP_Error( 'sourceequalstarget', 'Target and Source cannot direct to the same resource', array( 'status' => 400 ) );
+			return new WP_Error( 'source_equals_target', __( 'Target and Source cannot direct to the same
+						resource', 'linkbacks' ), array( 'status' => 400 ) );
 		}
 
 		// check if post id exists
 		if ( ! $comment_post_ID ) {
-			return new WP_Error( 'targetnotvalid', 'Target is Not a Valid Post', array( 'status' => 400 ) );
+			return new WP_Error( 'target_not_valid', __( 'Target is Not a Valid Post', 'linkbacks' ), array( 'status' => 400 ) );
 		}
 
 		// check if pings are allowed
 		if ( ! pings_open( $comment_post_ID ) ) {
-			return new WP_Error( 'pingsclosed', 'Pings are Disabled for this Post', array( 'status' => 400 ) );
+			return new WP_Error( 'pings_closed', __( 'Pings are Disabled for this Post', 'linkbacks' ), array( 'status' => 400 ) );
 		}
 
 		$post = get_post( $comment_post_ID );
 
 		if ( ! $post ) {
-			return new WP_Error( 'targetnotvalid', 'Target is Not a Valid Post', array( 'status' => 400 ) );
+			return new WP_Error( 'target_not_valid', __( 'Target is Not a Valid Post', 'linkbacks' ), array( 'status' => 400 ) );
 		}
 
 		// In the event of async processing this needs to be stored here as it might not be available
@@ -214,10 +214,6 @@ final class Webmention_Controller {
 		// re-add flood control
 		add_filter( 'check_comment_flood', 'check_comment_flood_db', 10, 3 );
 
-		if ( WP_DEBUG ) {
-			error_log( sprintf( __( 'Webmention from %1$s to %2$s received. Keep the web talking! :-)' ), $source, $target ) );
-		}
-
 		// Return the comment data
 		return $data;
 	}
@@ -231,7 +227,7 @@ final class Webmention_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public static function get( $request ) {
-		return '';
+		return true;
 	}
 
 
@@ -264,29 +260,5 @@ final class Webmention_Controller {
 	public static function http_header() {
 		header( 'Link: <' . get_webmention_endpoint() . '>; rel="webmention"', false );
 	}
-
-	/**
-	 * Generates a webmention form
-	 */
-	public static function webmention_form() {
-		?> 
-		<br />
-		<form id="webmention-form" action="<?php echo get_webmention_endpoint(); ?>" method="post">
-		<p>
-			<label for="webmention-source"><?php esc_html_e( 'Source URL:', 'webmention' ); ?></label>
-				<input id="webmention-source" size="15" type="url" name="source" placeholder="Where Did You Link to?" />
-		</p>
-		<p>
-			<label for="webmention-target"><?php esc_html_e( 'Target URL(must be on this site):', 'webmention' ); ?></label>
-			<input id="webmention-target" size="15" type="url" name="target" placeholder="What Did You Link to?" />
-			<br /><br/>
-			<input id="webmention-submit" type="submit" name="submit" value="Send" />
-		</p>
-		</form>
-		<p><?php esc_html_e( 'Webmention is a way for you to tell me "Hey, I have written a response to your post."', 'webmention' ); ?> </p>
-		<p><?php esc_html_e( 'Learn more about webmentions at <a href="http://webmention.net">webmention.net</a>', 'webmention' ); ?> </p>
-		<?php
-	}
-
 
 }
