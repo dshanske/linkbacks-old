@@ -87,7 +87,7 @@ final class Webmention_Controller {
 	public static function post( $request ) {
 		$params = array_filter( $request->get_params() );
 		if ( ! isset( $params['source'] ) ) {
-			return new WP_Error( 'source_missing' , __( 'Source is Missing' 'linkbacks'), array( 'status' => 400 ) );
+			return new WP_Error( 'source_missing' , __( 'Source is Missing', 'linkbacks'), array( 'status' => 400 ) );
 		}
 		if ( ! isset( $params['target'] ) ) {
 			return new WP_Error( 'target_missing', __( 'Target is Missing', 'linkbacks'), array( 'status' => 400 ) );

@@ -133,7 +133,7 @@ final class Linkback_Handler {
 			case 410:
 				return new WP_Error( 'deleted', __( 'Page has Been Deleted', 'linkbacks' ), array( 'status' => 400, 'data' => $data ) );
 			case 452:
-				return new WP_Error( 'removed', __( 'Page Removed for Legal Reasons' 'linkbacks' ), array( 'status' => 400, 'data' => $data ) );
+				return new WP_Error( 'removed', __( 'Page Removed for Legal Reasons', 'linkbacks' ), array( 'status' => 400, 'data' => $data ) );
 			default:
 				return new WP_Error( 'source_url', wp_remote_retrieve_response_message( $response ), array( 'status' => 400 ) );
 		}
