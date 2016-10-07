@@ -227,7 +227,7 @@ final class Linkback_Sender {
 			'post_type' => $post_types,
 			'suppress_filters' => false,
 			'posts_per_page' => -1,
-			'meta_value' => '_encloseme',
+			'meta_key' => '_encloseme',
 			'fields' => 'ids',
 		) );
 		foreach ( $enclosures as $enclosure ) {

@@ -47,11 +47,7 @@ final class Linkback_Display {
 	 * @return string the linkback source or the original comment link
 	 */
 	public static function get_comment_link( $link, $comment, $args ) {
-		$url = get_comment_meta( $comment->comment_ID, '_linkbacks_url', true );
-		if ( ! $url ) {
-			// If no URL look for it where Semantic Linkbacks stores it.
-			$url = get_comment_meta( $comment->comment_ID, 'semantic_linkbacks_canonical', true );
-		}
+		$url = self::get_linkback_url( $comment );
 		if ( is_singular() && $url ) {
 			return $url;
 		}
@@ -64,12 +60,12 @@ final class Linkback_Display {
 	 * @return array The array of translated display texts.
 	 */
 	public static function get_linkback_type_text() {
-		$strings = array( 'mention'		=> __( '%1$s mentioned %2$s', 'linkbacks' ),
-											'reply'			=> __( '%1$s replied to %2$s', 'linkbacks' ),
-											'repost'		=> __( '%1$s reposted %2$s', 'linkbacks' ),
-											'like'			=> __( '%1$s liked %2$s',		'linkbacks' ),
-											'tag'				=> __( '%1$s tagged %2$s',		'linkbacks' ),
-											'bookmark'	=> __( '%1$s bookmarked %2$s', 'linkbacks' )
+		$strings = array( 'mention'		=> __( 'mentioned this.', 'linkbacks' ),
+											'reply'			=> __( 'replied to this.', 'linkbacks' ),
+											'repost'		=> __( 'reposted this.', 'linkbacks' ),
+											'like'			=> __( 'liked this.',		'linkbacks' ),
+											'tag'				=> __( 'tagged this.',		'linkbacks' ),
+											'bookmark'	=> __( 'bookmarked this.', 'linkbacks' )
 				);
 		return $strings;
 	}
@@ -175,6 +171,22 @@ final class Linkback_Display {
 		}
 		return $url;
 	}
+
+	public static function get_linkback_type( $comment = null ) {
+		$type = get_comment_meta( $comment->comment_ID, '_linkback_type', true );
+		if ( ! $type ) {
+			$type = get_comment_meta( $comment->comment_ID, 'semantic_linkbacks_type', true );
+		}
+		if ( ! $type ) {
+			return 'mention';
+		}
+		if (!in_array($type, array_keys(self::get_linkback_type_strings()))) {
+			$type = "mention";
+		}
+
+		return $type;
+	}
+
 
 
 	/**

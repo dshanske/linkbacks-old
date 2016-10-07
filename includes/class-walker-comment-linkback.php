@@ -88,40 +88,6 @@ class Walker_Comment_Linkback extends Walker_Comment {
 			$output .= "</li><!-- #comment-## -->\n";
 	}
 
-	public static function linkback_text($comment = null) {
-  	// only change text for pingbacks/trackbacks/webmentions
-    if (!$comment || $comment->comment_type == "" ) {
-			return "";
-		}
-		// check linkback type
-		$linkback_type = get_comment_meta($comment->comment_ID, "_linkback_type", true);
-
-		if ( ! $linkback_type ) {
-			$linkback_type = get_comment_meta($comment->comment_ID, "semantic_linkbacks_type", true);
-		}
-
-		if (!in_array($linkback_type, array_keys(Linkback_Display::get_linkback_type_strings()))) {
-			$linkback_type = "mention";
-		}
-
-
-	
-		$url = get_comment_meta($comment->comment_ID, "_linkback_url", true);
-		// ...or fall back to source
-		if (!$url) {
-			$url = get_comment_meta($comment->comment_ID, "_linkback_source", true);
-		}
-
-		// Else fall back to old data fields
-		$url = get_comment_meta($comment->comment_ID, "semantic_linkbacks_canonical", true);
-
-		// generate output
-		$linkback_type_strings = Linkback_Display::get_linkback_type_strings();
-		$text = $linkback_type_strings[ $linkback_type ] . ': ';
-		
-		return $text;
-	}
-
 	/**
 	 * Output a linkback.
 	 *
@@ -135,21 +101,26 @@ class Walker_Comment_Linkback extends Walker_Comment {
 	 * @param array  $args    An array of arguments.
 	 */
 	protected function ping( $comment, $depth, $args ) {
-        $tag = ( 'div' == $args['style'] ) ? 'div' : 'li';
-    		$linkback_type = get_comment_meta($comment->comment_ID, "_linkback_type", true);
+		$tag = ( 'div' == $args['style'] ) ? 'div' : 'li';
+		$url = Linkback_Display::get_linkback_url( $comment);  
+		$type = Linkback_Display::get_linkback_type( $comment ); 
+		$linkback_type_text = Linkback_Display::get_linkback_type_text(); 
+		$avatar = get_avatar( $comment, $args['avatar_size'] );
 ?>
         <<?php echo $tag; ?> id="comment-<?php comment_ID(); ?>" <?php comment_class('h-cite'); ?>>
            <article id="div-comment-<?php comment_ID(); ?>" class="comment-body">
-         		 <span class="comment-author vcard h-card p-author">
-             	<?php if ( 0 != $args['avatar_size'] ) echo get_avatar( $comment, $args['avatar_size'] ); ?>						
-							<span class="p-name"><?php comment_author_link($comment->comment_ID) ?></span>
-        	   </span><!-- .comment-author -->
+         		 <div class="comment-content">
+						 <span class="comment-author vcard h-card p-author">
+             	<a href="<?php echo get_comment_author_url( $comment ); ?>"><?php echo $avatar .
+							get_comment_author( $comment ); ?></a>
 					 	 <span class="p-summary p-name">
-            	 <?php echo self::linkback_text($comment); ?>
+            	 <?php echo $linkback_type_text[ $type ]; ?>
         		 </span><!-- .p-summary -->
-             <time class="dt-published" datetime="<?php comment_time( DATE_ISO8601 ); ?>" ><a
+						<footer class="comment-metadata">
+             <small><time class="dt-published" datetime="<?php comment_time( DATE_ISO8601 ); ?>" ><a
 						 href="<?php echo get_comment_link( $comment ); ?>"><?php comment_time( 'F j, Y g:i a' );
-?></a>
+?></a> on <?php echo preg_replace( '/^www\./', '', parse_url( $url, PHP_URL_HOST ) ); ?></small>
+						</footer>
 						</article>
 <?php
     }
@@ -167,9 +138,10 @@ class Walker_Comment_Linkback extends Walker_Comment {
 	 */
 	protected function html5_comment( $comment, $depth, $args ) {
 		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
-		$semantic_linkbacks_type = get_comment_meta($comment->comment_ID, "semantic_linkbacks_type", true);
+		$type = Linkback_Display::get_linkback_type( $comment );
 		?>
-		<<?php echo $tag; ?> id="comment-<?php comment_ID(); ?>" <?php comment_class( $this->has_children ? 'parent p-comment h-cite' : 'p-comment h-cite' ); ?>>
+		<<?php echo $tag; ?> id="comment-<?php comment_ID(); ?>" <?php comment_class(
+				$this->has_children ? 'parent u-comment h-cite' : 'u-comment h-cite' ); ?>>
 			<article id="div-comment-<?php comment_ID(); ?>" class="comment-body">
 				<header class="comment-metadata">
 					<span class="comment-author vcard h-card p-author">
@@ -177,7 +149,7 @@ class Walker_Comment_Linkback extends Walker_Comment {
 						<?php printf( __( '%s' ), sprintf( '<b class="fn">%s</b>', get_comment_author_link() ) ); ?>
 					</span><!-- .comment-author -->
 					<?php     
-						if ($comment || $semantic_linkbacks_type || $comment->comment_type == "" || $semantic_linkbacks_type == "reply") {
+						if ($comment || $type || $comment->comment_type == "" || $type == "reply") {
 							 $url = Linkback_Display::get_linkback_url( $comment );
 							 if ($url) {
     					 	$host = parse_url($url, PHP_URL_HOST);
